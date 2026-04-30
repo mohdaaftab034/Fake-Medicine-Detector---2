@@ -6,13 +6,13 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { analyzeImage, askGroq } from '../services/groq.service.js'
 
 export const chatWithGroq = asyncHandler(async (req, res, next) => {
-  const { question, context } = req.body
+  const { question, context, history } = req.body
   
   if (!question) {
     return next(new ApiError(400, 'Please provide a question'))
   }
 
-  const response = await askGroq(question, [], context)
+  const response = await askGroq(question, history || [], context)
   res.status(200).json(new ApiResponse(200, { response }, 'Follow-up answer generated'))
 })
 
@@ -60,7 +60,7 @@ export const analyzeMedicine = asyncHandler(async (req, res, next) => {
   console.log('[SCAN CONTROLLER] Saving scan to database...')
   try {
     const scan = await Scan.create({
-      user: req.user._id,
+      user: req.user?._id || null,
       imageUrl: imageUrl,
       imagePublicId: req.file ? (req.file.filename || req.file.public_id || req.file.path || null) : null,
       result: aiResult.status,

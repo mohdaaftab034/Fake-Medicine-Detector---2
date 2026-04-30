@@ -36,6 +36,7 @@ const ImageSection = ({ onAnalyze, isAnalyzing, hasAnalyzed }) => {
           <>
             <img src={preview} alt="Medicine" className="w-full h-full object-cover" />
             <button 
+              type="button"
               onClick={() => { setPreview(null); setSelectedFile(null); }}
               className="absolute top-4 right-4 p-2 bg-danger rounded-xl text-white shadow-xl hover:scale-110 transition-transform"
             >
@@ -67,6 +68,7 @@ const ImageSection = ({ onAnalyze, isAnalyzing, hasAnalyzed }) => {
       </div>
 
       <button
+        type="button"
         onClick={() => onAnalyze(selectedFile)}
         disabled={!selectedFile || isAnalyzing}
         className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all ${

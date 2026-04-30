@@ -108,8 +108,10 @@ const Scanner = () => {
       return;
     }
 
+    console.log('[SCANNER] Starting analysis for file:', file.name);
+
     const initialMessages = [{
-      id: 'new-image',
+      id: `new-scan-${Date.now()}`,
       role: 'ai',
       content: 'New medicine loaded. Analyzing...',
       timestamp: new Date(),
@@ -118,7 +120,7 @@ const Scanner = () => {
 
     if (file.size < 50 * 1024) {
       initialMessages.push({
-        id: 'warning-size',
+        id: `warning-${Date.now()}`,
         role: 'ai',
         content: 'Warning: This image is quite small (under 50KB). The analysis might be less accurate due to low resolution. Please upload a higher quality photo if possible.',
         timestamp: new Date(),
@@ -127,7 +129,16 @@ const Scanner = () => {
       });
     }
 
-    setMessages(initialMessages);
+    const separator = {
+      id: `sep-${Date.now()}`,
+      role: 'ai',
+      content: '--- New Analysis Session Started ---',
+      timestamp: new Date(),
+      isAnalysis: false,
+      isSeparator: true
+    };
+
+    setMessages(prev => [...prev, separator, ...initialMessages]);
     setIsAnalyzing(true);
     setIsTyping(true);
 
@@ -153,6 +164,8 @@ const Scanner = () => {
         content: cleanedResponse,
         timestamp: new Date(),
         isAnalysis: true,
+        status: scanStatus === 'LOOKS_PROFESSIONAL' ? 'GENUINE' : scanStatus === 'HAS_ISSUES' ? 'FAKE' : 'SUSPICIOUS',
+        confidence: finalConfidence,
         disclaimer: ANALYSIS_DISCLAIMER
       };
       
@@ -201,8 +214,15 @@ const Scanner = () => {
     setMessages(prev => [...prev, userMessage]);
     setIsTyping(true);
 
+    const history = messages
+      .filter(msg => !msg.isSeparator && msg.content !== 'New medicine loaded. Analyzing...')
+      .map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content
+      }));
+
     try {
-      const response = await chatFollowUp(content, analysisText);
+      const response = await chatFollowUp(content, analysisText, history);
       const aiMessage = {
         id: Date.now() + 1,
         role: 'ai',

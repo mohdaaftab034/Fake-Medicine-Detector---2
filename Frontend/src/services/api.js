@@ -27,9 +27,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      console.warn('Unauthorized access - 401. Clearing token but staying on page.');
       localStorage.removeItem('token');
       localStorage.removeItem('mediguard-token');
-      window.location.href = '/';
+      // window.location.href = '/'; // Temporarily disabled to prevent abrupt redirects
     }
     return Promise.reject(error);
   }

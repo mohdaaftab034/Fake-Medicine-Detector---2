@@ -4,4 +4,3 @@ export const generateRandomString = (length = 10) => {
 }
 
 export const delay = (ms) => new Promise(res => setTimeout(res, ms))
- 

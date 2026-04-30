@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, Sparkles, Paperclip, Shield } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
+import AnalysisReportCard from './AnalysisReportCard';
 
 const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
   const [input, setInput] = useState('');
@@ -63,48 +64,71 @@ const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
               </div>
             </div>
           ) : (
-            messages.map((msg) => (
-              <motion.div
-                key={msg.id}
-                initial={{ opacity: 0, y: 10, x: msg.role === 'user' ? 20 : -20 }}
-                animate={{ opacity: 1, y: 0, x: 0 }}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    msg.role === 'user' ? 'bg-primary text-white' : 'bg-bg-secondary border border-border-color text-primary'
-                  }`}>
-                    {msg.role === 'user' ? 'U' : <Shield size={14} />}
-                  </div>
-                  <div className="space-y-1">
-                    <p className={`text-[10px] font-bold text-text-secondary uppercase tracking-tighter ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                      {msg.role === 'user' ? 'You' : 'MediGuard AI'}
-                    </p>
-                    <div className={`p-4 rounded-2xl shadow-sm ${
-                      msg.role === 'user' 
-                        ? 'bg-gradient-to-br from-primary to-primary-dark text-white rounded-tr-none' 
-                        : msg.isWarning 
-                          ? 'bg-warning/10 border-l-4 border-warning text-text-primary rounded-tl-none'
-                          : 'bg-bg-secondary border-l-4 border-primary text-text-primary rounded-tl-none prose prose-invert max-w-none'
+            messages.map((msg) => {
+              if (msg.isSeparator) {
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex items-center gap-4 my-8"
+                  >
+                    <div className="flex-1 h-[1px] bg-border-color/50" />
+                    <span className="text-[10px] font-bold text-text-secondary uppercase tracking-[0.2em] whitespace-nowrap">
+                      {msg.content}
+                    </span>
+                    <div className="flex-1 h-[1px] bg-border-color/50" />
+                  </motion.div>
+                );
+              }
+              return (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0, y: 10, x: msg.role === 'user' ? 20 : -20 }}
+                  animate={{ opacity: 1, y: 0, x: 0 }}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                      msg.role === 'user' ? 'bg-primary text-white' : 'bg-bg-secondary border border-border-color text-primary'
                     }`}>
-                      {msg.role === 'ai' ? (
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
-                      ) : (
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
-                      )}
+                      {msg.role === 'user' ? 'U' : <Shield size={14} />}
                     </div>
-                    {msg.role === 'ai' && msg.isAnalysis && (
-                      <p className="px-1 text-[11px] italic text-text-secondary leading-relaxed max-w-[95%]">
-                        {msg.disclaimer || analysisDisclaimer}
+                    <div className="space-y-1">
+                      <p className={`text-[10px] font-bold text-text-secondary uppercase tracking-tighter ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                        {msg.role === 'user' ? 'You' : 'MediGuard AI'}
                       </p>
-                    )}
-                    <p className={`text-[9px] text-text-secondary mt-1 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                      <div className={`p-4 rounded-2xl shadow-sm ${
+                        msg.role === 'user' 
+                          ? 'bg-gradient-to-br from-primary to-primary-dark text-white rounded-tr-none' 
+                          : msg.isWarning 
+                            ? 'bg-warning/10 border-l-4 border-warning text-text-primary rounded-tl-none'
+                            : msg.isAnalysis 
+                              ? 'bg-transparent border-none p-0 max-w-none'
+                              : 'bg-bg-secondary border-l-4 border-primary text-text-primary rounded-tl-none prose prose-invert max-w-none'
+                      }`}>
+                        {msg.role === 'ai' ? (
+                          msg.isAnalysis ? (
+                            <AnalysisReportCard 
+                              text={msg.content} 
+                              status={msg.status} 
+                              confidence={msg.confidence} 
+                            />
+                          ) : (
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          )
+                        ) : (
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                        )}
+                      </div>
+                      <p className={`text-[9px] text-text-secondary mt-1 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))
+                </motion.div>
+              );
+            })
           )}
 
           {isTyping && (

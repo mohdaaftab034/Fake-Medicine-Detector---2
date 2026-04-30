@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const scanSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   imageUrl: { type: String, required: true },
   imagePublicId: { type: String },
   result: {

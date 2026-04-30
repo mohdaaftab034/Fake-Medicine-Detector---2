@@ -28,8 +28,8 @@ export const getScanHistory = async () => {
   return response.data;
 };
 
-export const chatFollowUp = async (question, context) => {
-  const response = await api.post(`${API_URL}/chat`, { question, context });
+export const chatFollowUp = async (question, context, history = []) => {
+  const response = await api.post(`${API_URL}/chat`, { question, context, history });
   return response.data;
 };
 
