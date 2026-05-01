@@ -28,7 +28,7 @@ const Navbar = () => {
     { path: ROUTES.MEDICINE_INFO, label: 'Medicine Info' },
     { path: ROUTES.NEARBY_CHEMIST, label: 'Find Chemist' },
     { path: ROUTES.ALERTS, label: 'Alerts', badge: activeAlerts?.length > 0 ? activeAlerts.length : null },
-    { path: '/agent', label: '🤖 AI Agent' },
+    { path: '/agent', label: '🤖 AI Agent', special: true },
   ];
 
   const navLinks = user
@@ -94,7 +94,8 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`mg-nav__link${isActive(link.path) ? ' mg-nav__link--active' : ''}`}
+                className={`mg-nav__link${isActive(link.path) ? ' mg-nav__link--active' : ''}${link.special ? ' mg-nav__link--special' : ''}`}
+                style={link.special ? { color: '#00B4D8', fontWeight: '700' } : {}}
               >
                 {link.label}
                 {link.badge && (

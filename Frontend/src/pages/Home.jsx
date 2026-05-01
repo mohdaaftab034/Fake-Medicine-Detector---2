@@ -1,8 +1,9 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Barcode, AlertTriangle, MapPin, Bell, BookOpen, ArrowRight, ArrowUpRight, Check } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { AppContext } from '../context/AppContext.jsx';
+import { AuthContext } from '../context/AuthContext.jsx';
 import { ROUTES } from '../utils/constants.js';
 
 const CountUp = ({ end, suffix = '', duration = 2000 }) => {
@@ -28,6 +29,14 @@ const CountUp = ({ end, suffix = '', duration = 2000 }) => {
 
 const Home = () => {
   const { activeAlerts } = useContext(AppContext);
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate('/agent');
+    }
+  }, [user, navigate]);
 
   const features = [
     { icon: ShieldCheck, title: 'AI Scanner', description: 'Upload a photo — our model identifies counterfeits in under 3 seconds.', tag: 'Most Used' },
