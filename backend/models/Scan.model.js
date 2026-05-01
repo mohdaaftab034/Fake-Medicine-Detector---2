@@ -19,7 +19,19 @@ const scanSchema = new mongoose.Schema({
     estimatedMRP: String
   },
   batchNumber: { type: String },
-  batchStatus: { type: String, enum: ['RECALLED', 'UNVERIFIED', 'NOT_CHECKED'], default: 'NOT_CHECKED' },
+  batchStatus: { 
+    type: String, 
+    enum: ['NOT_CHECKED', 'NOT_DETECTED', 'RECALLED', 'UNDER_INVESTIGATION', 'NOT_IN_RECALLED_LIST'],
+    default: 'NOT_CHECKED'
+  },
+  batchDetails: { type: mongoose.Schema.Types.Mixed },
+  medicineDbResult: { type: mongoose.Schema.Types.Mixed },
+  nearbyChemists: [{ type: mongoose.Schema.Types.Mixed }],
+  riskLevel: { 
+    type: String, 
+    enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'],
+    default: 'LOW'
+  },
   location: {
     city: String,
     state: String,

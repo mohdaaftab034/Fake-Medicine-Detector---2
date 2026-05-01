@@ -19,6 +19,8 @@ const medicineSchema = new mongoose.Schema({
   dosage: String,
   storageInstructions: String,
   requiresPrescription: { type: Boolean, default: false },
+  searchCount: { type: Number, default: 0 },
+  lastSearchedAt: { type: Date },
   isActive: { type: Boolean, default: true }
 }, { timestamps: true })
 

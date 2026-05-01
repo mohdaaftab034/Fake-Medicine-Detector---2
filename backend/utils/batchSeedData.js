@@ -140,7 +140,7 @@ export const seedBatchNumbers = async () => {
       const result = await BatchNumber.findOneAndUpdate(
         { batchNumber: batch.batchNumber },
         { $set: batch },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       )
       if (result.createdAt === result.updatedAt) {
         inserted++

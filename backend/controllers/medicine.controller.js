@@ -2,6 +2,7 @@ import axios from 'axios'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { ApiResponse, ApiError } from '../utils/apiResponse.js'
 import { askGroq } from '../services/groq.service.js'
+import Medicine from '../models/Medicine.model.js'
 
 // Clean FDA text — it comes in ALL CAPS and messy format
 const cleanText = (text) => {
@@ -91,19 +92,61 @@ export const searchMedicine = asyncHandler(async (req, res) => {
       m.genericName.toLowerCase().includes(query.toLowerCase())
   )
 
-  if (localResults.length > 0) {
-    return res.json(new ApiResponse(200, localResults, 'Results from Indian medicines database'))
-  }
-
   // Call OpenFDA
   const fdaResults = await fetchFromFDA(query)
+  const formatted = fdaResults.map(formatFDAResult)
+  
+  const finalResults = [...localResults, ...formatted]
 
-  if (fdaResults.length === 0) {
+  if (finalResults.length === 0) {
     return res.json(new ApiResponse(200, [], 'No medicines found. Try generic name like paracetamol instead of Crocin'))
   }
 
-  const formatted = fdaResults.map(formatFDAResult)
-  return res.json(new ApiResponse(200, formatted, 'Results from OpenFDA'))
+  // Save each result to Medicine model if not already exists
+  for (const med of finalResults.slice(0, 3)) {
+    await Medicine.findOneAndUpdate(
+      { name: med.name, manufacturer: med.manufacturer },
+      {
+        $set: {
+          name: med.name,
+          genericName: med.genericName,
+          manufacturer: med.manufacturer,
+          category: med.category,
+          dosageForm: med.dosageForm,
+          requiresPrescription: med.requiresPrescription,
+          indications: med.indications,
+          warnings: med.warnings,
+          sideEffects: med.sideEffects,
+          drugInteractions: med.drugInteractions,
+          storageInstructions: med.storageInstructions,
+          description: med.description,
+          source: med.source || 'OpenFDA',
+          lastSearchedAt: new Date()
+        },
+        $inc: { searchCount: 1 }
+      },
+      { upsert: true, returnDocument: 'after' }
+    )
+  }
+  console.log(`[MEDICINE] Saved ${Math.min(finalResults.length, 3)} medicines to database`)
+
+  return res.json(new ApiResponse(200, finalResults, 'Search results'))
+})
+
+// GET /api/v1/medicines/:id
+export const getMedicineDetail = asyncHandler(async (req, res) => {
+  const { id } = req.params
+  
+  const medicine = await Medicine.findById(id)
+  if (!medicine) {
+    throw new ApiError(404, 'Medicine not found')
+  }
+
+  medicine.searchCount += 1
+  medicine.lastSearchedAt = new Date()
+  await medicine.save()
+
+  return res.json(new ApiResponse(200, medicine, 'Medicine details fetched'))
 })
 
 // GET /api/v1/medicines/suggestions?query=para

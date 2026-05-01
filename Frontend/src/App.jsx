@@ -21,6 +21,7 @@ import NotFound from './pages/NotFound.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import UserDashboard from './pages/dashboard/UserDashboard.jsx';
+import ScanHistory from './pages/dashboard/ScanHistory.jsx';
 import ChemistDashboard from './pages/dashboard/ChemistDashboard.jsx';
 import AdminDashboard from './pages/dashboard/AdminDashboard.jsx';
 import AccessDenied from './pages/AccessDenied.jsx';
@@ -77,6 +78,14 @@ function App() {
                   element={
                     <ProtectedRoute requiredRole="public">
                       <UserDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/dashboard/user/history"
+                  element={
+                    <ProtectedRoute requiredRole="public">
+                      <ScanHistory />
                     </ProtectedRoute>
                   }
                 />

@@ -31,7 +31,7 @@ export const updateChemistProfile = asyncHandler(async (req, res, next) => {
   const chemist = await Chemist.findOneAndUpdate(
     { user: req.user._id },
     req.body,
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   )
   if (!chemist) return next(new ApiError(404, 'Chemist profile not found'))
   res.status(200).json(new ApiResponse(200, chemist, 'Profile updated'))
@@ -53,7 +53,7 @@ export const approveChemist = asyncHandler(async (req, res, next) => {
   const chemist = await Chemist.findByIdAndUpdate(
     req.params.id,
     { isVerified: true, verifiedAt: new Date(), verifiedBy: req.user._id },
-    { new: true }
+    { returnDocument: 'after' }
   )
   if (!chemist) return next(new ApiError(404, 'Chemist not found'))
   
@@ -74,7 +74,7 @@ export const blacklistChemist = asyncHandler(async (req, res, next) => {
   const chemist = await Chemist.findByIdAndUpdate(
     req.params.id,
     { isBlacklisted: true, blacklistReason: req.body.reason },
-    { new: true }
+    { returnDocument: 'after' }
   )
   if (!chemist) return next(new ApiError(404, 'Chemist not found'))
   

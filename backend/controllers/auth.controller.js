@@ -113,7 +113,7 @@ export const updateProfile = asyncHandler(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(
     req.user._id,
     { name, phone, city, state, notificationPreferences },
-    { new: true, runValidators: true }
+    { returnDocument: 'after', runValidators: true }
   ).select('-password -refreshToken')
 
   res.status(200).json(new ApiResponse(200, user, 'Profile updated successfully'))

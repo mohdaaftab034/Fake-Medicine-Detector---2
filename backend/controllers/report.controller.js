@@ -34,7 +34,8 @@ export const submitReport = asyncHandler(async (req, res, next) => {
 
 export const getMyReports = asyncHandler(async (req, res, next) => {
   const reports = await Report.find({ reporter: req.user._id }).sort({ createdAt: -1 })
-  res.status(200).json(new ApiResponse(200, reports, 'Reports fetched successfully'))
+  const total = await Report.countDocuments({ reporter: req.user._id })
+  res.status(200).json(new ApiResponse(200, { reports, total }, 'Reports fetched successfully'))
 })
 
 export const getAllReports = asyncHandler(async (req, res, next) => {
@@ -62,7 +63,7 @@ export const updateReportStatus = asyncHandler(async (req, res, next) => {
   const report = await Report.findByIdAndUpdate(
     req.params.id,
     { status, adminNotes },
-    { new: true }
+    { returnDocument: 'after' }
   )
   if (!report) return next(new ApiError(404, 'Report not found'))
   
@@ -73,7 +74,7 @@ export const forwardToCDSCO = asyncHandler(async (req, res, next) => {
   const report = await Report.findByIdAndUpdate(
     req.params.id,
     { forwardedToCDSCO: true },
-    { new: true }
+    { returnDocument: 'after' }
   )
   if (!report) return next(new ApiError(404, 'Report not found'))
   

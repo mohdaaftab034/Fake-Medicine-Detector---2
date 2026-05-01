@@ -4,53 +4,36 @@ const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 const GROQ_VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct'
 const GROQ_CHAT_MODEL = 'llama-3.3-70b-versatile'
 
-const PACKAGING_ANALYSIS_PROMPT = `You are a medicine packaging quality inspector. Your job is ONLY to check if the packaging looks professionally made or has visual problems. You CANNOT determine if a medicine is fake or genuine from image alone - only lab tests can do that.
+const PACKAGING_ANALYSIS_PROMPT = `You are a medicine packaging analyst with expert knowledge of Indian medicines.
 
-CHECK ONLY THESE VISUAL THINGS:
-1. Is the text printed clearly without blurring or smudging?
-2. Are there any obvious spelling mistakes on the label?
-3. Are these mandatory fields visible: medicine name, manufacturer name, batch number, expiry date, MRP, manufacturer address, drug license number?
-4. Does the packaging look professionally printed or does it look photocopied/low quality?
-5. Is there any sign of label tampering or sticker over sticker?
-6. Is a hologram or security seal visible?
+Analyze this medicine packaging image carefully. Read ALL text visible on the packaging.
 
-RESPOND WITH EXACTLY THIS FORMAT AND DO NOT USE ANY EMOJIS OR SPECIAL SYMBOLS:
+RESPOND EXACTLY IN THIS FORMAT — do not change the labels:
 
-PACKAGING INSPECTION REPORT
+MEDICINE_NAME: [Write the exact medicine brand name as printed on packaging. Example: Dabitor 150, Dolo 650, Pan 40, Crocin Advance]
+GENERIC_NAME: [Write the generic/chemical name. Example: Dabigatran Etexilate Capsules 150mg, Paracetamol Tablets 650mg]
+MANUFACTURER: [Exact manufacturer name from packaging]
+MRP: [Exact MRP price with Rs or rupee symbol if visible, else write NOT_VISIBLE]
+BATCH_NUMBER: [Exact batch/lot number if visible, else write NOT_VISIBLE]
+EXPIRY_DATE: [Exact expiry date if visible, else write NOT_VISIBLE]
+DRUG_LICENSE: [Drug license number if visible, else write NOT_VISIBLE]
+MANUFACTURER_ADDRESS: [Address if visible, else write NOT_VISIBLE]
+CATEGORY: [Tablet or Capsule or Syrup or Injection or Cream or Drops]
+REQUIRES_PRESCRIPTION: [YES if Rx symbol visible, NO if OTC]
 
-WHAT I CAN SEE
-[Describe exactly what text and elements are visible]
+PACKAGING_STATUS: [Write exactly one of: LOOKS_PROFESSIONAL or HAS_ISSUES or IMAGE_UNCLEAR]
+CONFIDENCE: [Number between 0 and 100]
 
-PACKAGING STATUS
-Status: [LOOKS PROFESSIONAL / HAS ISSUES / IMAGE TOO UNCLEAR]
-Confidence: [number]%
+RED_FLAGS:
+[List each red flag on a new line starting with dash. Write NONE if no red flags]
 
-MANDATORY FIELDS CHECK
-Medicine Name: [found/not found]
-Manufacturer: [exact text or not visible]
-Batch Number: [exact text or not visible]
-Expiry Date: [exact text or not visible]
-MRP: [exact price or not visible]
-Drug License No: [found/not visible]
-Manufacturer Address: [found/not visible]
+WHAT_I_SEE:
+[Describe all visible text and elements on the packaging in 2-3 sentences]
 
-VISUAL RED FLAGS FOUND
-[List any problems OR write "No visual red flags detected"]
+SAFETY_ADVICE:
+[Write 2-3 practical steps the user should take]
 
-MEDICINE DETAILS READ FROM IMAGE
-Name: [exact text from packaging]
-Manufacturer: [exact text from packaging]
-MRP: [exact price from packaging or Not visible]
-Batch: [exact number from packaging or Not visible]
-Expiry: [exact date from packaging or Not visible]
-
-IMPORTANT DISCLAIMER
-This is only a visual packaging check. A professionally looking package does NOT guarantee the medicine inside is genuine. For certainty, verify the batch number with authorities and purchase only from licensed chemists.
-
-RECOMMENDED NEXT STEPS
-1. Verify batch number in the Batch Verification section
-2. Purchase from a verified chemist on our platform
-3. If in doubt, contact the manufacturer directly or report to CDSCO helpline 1800-180-3024`
+IMPORTANT: Medicine name is the most critical field. Read it exactly as printed — large text on the packaging is usually the brand name.`
 
 const fetchImageAsBase64 = async (imageUrl) => {
   let fetchUrl = imageUrl
@@ -70,44 +53,126 @@ const fetchImageAsBase64 = async (imageUrl) => {
   return { base64Data, mimeType }
 }
 
-const parseStatus = (text) => {
-  const upper = text.toUpperCase()
-  if (upper.includes('HAS ISSUES')) return 'HAS_ISSUES'
-  if (upper.includes('IMAGE TOO UNCLEAR')) return 'UNCLEAR'
-  if (upper.includes('LOOKS PROFESSIONAL')) return 'LOOKS_PROFESSIONAL'
-  return 'LOOKS_PROFESSIONAL'
-}
+const parseStructuredResponse = (text) => {
+  const getField = (fieldName) => {
+    const patterns = [
+      new RegExp(`${fieldName}:\\s*([^\\n]+)`, 'i'),
+      new RegExp(`${fieldName}\\s*=\\s*([^\\n]+)`, 'i'),
+    ]
+    for (const pattern of patterns) {
+      const match = text.match(pattern)
+      if (match?.[1]) {
+        const value = match[1].trim()
+        if (
+          value &&
+          value !== 'NOT_VISIBLE' &&
+          value !== 'N/A' &&
+          !value.match(/^\[.*\]$/) &&
+          value.length > 1
+        ) {
+          return value
+        }
+      }
+    }
+    return null
+  }
 
-const parseConfidence = (text) => {
-  const match = text.match(/Confidence:\s*(\d{1,3})\s*%/i)
-  return match ? Math.min(100, Number(match[1])) : 70
-}
+  const medicineName = getField('MEDICINE_NAME')
+  const genericName = getField('GENERIC_NAME')
+  const manufacturer = getField('MANUFACTURER')
+  const mrp = getField('MRP')
+  const batchNumber = getField('BATCH_NUMBER')
+  const expiryDate = getField('EXPIRY_DATE')
+  const drugLicense = getField('DRUG_LICENSE')
+  const manufacturerAddress = getField('MANUFACTURER_ADDRESS')
+  const category = getField('CATEGORY')
+  const requiresPrescription = getField('REQUIRES_PRESCRIPTION')
 
-const parseFields = (text) => ({
-  medicineName: /Medicine Name:\s*(.+)/i.exec(text)?.[1]?.trim() || 'Not visible',
-  manufacturer: /Manufacturer:\s*(.+)/i.exec(text)?.[1]?.trim() || 'Not visible',
-  batchNumber: /Batch:\s*(.+)/i.exec(text)?.[1]?.trim() || 'Not visible',
-  expiryDate: /Expiry:\s*(.+)/i.exec(text)?.[1]?.trim() || 'Not visible',
-  mrp: /MRP:\s*(.+)/i.exec(text)?.[1]?.trim() || 'Not visible',
-  drugLicense: /Drug License No:\s*(.+)/i.exec(text)?.[1]?.trim() || 'Not visible',
-  manufacturerAddress: /Manufacturer Address:\s*(.+)/i.exec(text)?.[1]?.trim() || 'Not visible'
-})
+  // Parse red flags
+  const redFlagsMatch = text.match(/RED_FLAGS:\n([\s\S]*?)(?=WHAT_I_SEE:|SAFETY_ADVICE:|$)/i)
+  const redFlagsText = redFlagsMatch?.[1]?.trim() || ''
+  const redFlags = redFlagsText === 'NONE' || !redFlagsText
+    ? []
+    : redFlagsText
+        .split('\n')
+        .map(l => l.replace(/^[-•*]\s*/, '').trim())
+        .filter(l => l.length > 5 && l.toLowerCase() !== 'none')
 
-const parseRedFlags = (text) => {
-  const match = text.match(/VISUAL RED FLAGS FOUND\s*\n([\s\S]*?)(?=MEDICINE DETAILS READ FROM IMAGE|IMPORTANT DISCLAIMER|$)/i)
-  if (!match) return []
+  // Parse what AI sees
+  const whatISeeMatch = text.match(/WHAT_I_SEE:\n([\s\S]*?)(?=SAFETY_ADVICE:|RED_FLAGS:|$)/i)
+  const whatISee = whatISeeMatch?.[1]?.trim() || ''
 
-  return match[1]
-    .split('\n')
-    .map((line) => line.replace(/^[-•*\d.\s]+/, '').trim())
-    .filter((line) => line.length > 5 && !/^No visual red flags detected$/i.test(line))
+  // Parse safety advice
+  const safetyMatch = text.match(/SAFETY_ADVICE:\n([\s\S]*?)$/i)
+  const safetyAdvice = safetyMatch?.[1]?.trim() || ''
+
+  // Parse status
+  const packagingStatusMatch = text.match(/PACKAGING_STATUS:\s*([^\n]+)/i)
+  const packagingStatus = packagingStatusMatch?.[1]?.trim() || 'IMAGE_UNCLEAR'
+
+  // Parse confidence
+  const confidenceMatch = text.match(/CONFIDENCE:\s*(\d+)/i)
+  const confidence = confidenceMatch ? Math.min(100, Number(confidenceMatch[1])) : 70
+
+  // Map packaging status to DB status
+  const statusMap = {
+    'LOOKS_PROFESSIONAL': 'GENUINE',
+    'HAS_ISSUES': 'FAKE',
+    'IMAGE_UNCLEAR': 'SUSPICIOUS'
+  }
+  const dbStatus = statusMap[packagingStatus] || 'SUSPICIOUS'
+
+  // Build display name — use brand name if available, fall back to generic
+  const displayName = medicineName || genericName || 'Could not detect medicine name'
+
+  console.log('[AI SERVICE] Parsed medicine name:', displayName)
+  console.log('[AI SERVICE] Parsed manufacturer:', manufacturer)
+  console.log('[AI SERVICE] Packaging status:', packagingStatus)
+
+  return {
+    // For DB storage
+    status: dbStatus,
+    confidence,
+    packagingStatus,
+    redFlags,
+
+    // Medicine details
+    medicineDetails: {
+      name: displayName,
+      genericName: genericName || 'Not detected',
+      manufacturer: manufacturer || 'Not detected',
+      mrp: mrp || 'Not visible',
+      batchNumber: batchNumber || 'Not visible',
+      expiryDate: expiryDate || 'Not visible',
+      drugLicense: drugLicense || 'Not visible',
+      manufacturerAddress: manufacturerAddress || 'Not visible',
+      category: category || 'Not detected',
+      requiresPrescription: requiresPrescription === 'YES'
+    },
+
+    // For frontend display
+    fields: {
+      medicineName: displayName,
+      genericName: genericName || 'Not detected',
+      manufacturer: manufacturer || 'Not detected',
+      batchNumber: batchNumber || 'Not visible',
+      expiryDate: expiryDate || 'Not visible',
+      mrp: mrp || 'Not visible',
+      drugLicense: drugLicense || 'Not visible',
+      manufacturerAddress: manufacturerAddress || 'Not visible',
+      category: category || 'Not detected',
+      requiresPrescription: requiresPrescription === 'YES'
+    },
+
+    // Summary text for chat
+    whatISee,
+    safetyAdvice,
+    text // full raw text
+  }
 }
 
 const extractText = (response) => {
-  return (response?.data?.choices || [])
-    .map((choice) => choice?.message?.content)
-    .filter((part) => typeof part === 'string' && part.trim().length > 0)
-    .join('\n')
+  return response?.data?.choices?.[0]?.message?.content || ''
 }
 
 export const analyzeImage = async (imageUrl) => {
@@ -163,17 +228,19 @@ export const analyzeImage = async (imageUrl) => {
       throw new Error('Groq returned empty response')
     }
 
-    return {
-      text,
-      status: parseStatus(text),
-      confidence: parseConfidence(text),
-      fields: parseFields(text),
-      redFlags: parseRedFlags(text)
-    }
+    console.log('[AI SERVICE] Raw response:', text.substring(0, 500))
+
+    // Use new structured parser
+    const parsed = parseStructuredResponse(text)
+
+    console.log('[AI SERVICE] Final medicine name:', parsed.medicineDetails.name)
+
+    return parsed
   } catch (error) {
     throw new Error(error?.response?.data?.error?.message || error.message || 'Image analysis failed')
   }
 }
+
 
 export const askGroq = async (userMessage, conversationHistory = [], medicineContext = '') => {
   try {

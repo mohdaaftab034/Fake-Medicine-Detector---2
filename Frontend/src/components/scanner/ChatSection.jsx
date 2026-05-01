@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Sparkles, Paperclip, Shield } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import { Send, Bot, Shield, Trash2, Paperclip, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import AnalysisReportCard from './AnalysisReportCard';
+import PipelineProgress from './PipelineProgress';
+import FullReportCard from './FullReportCard';
+import ChatMessageBubble from './ChatMessageBubble';
 
-const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
+const ChatSection = ({ messages, onSendMessage, onClearHistory, isTyping, hasAnalyzed, currentStep, stepResults }) => {
   const [input, setInput] = useState('');
   const scrollRef = useRef(null);
-  const analysisDisclaimer = 'Note: This is an AI analysis based on visual packaging inspection only. For critical medical decisions, always consult a licensed pharmacist or doctor. MediGuard is not responsible for misidentification.';
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -29,6 +29,13 @@ const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
     }
   };
 
+  const STEPS = [
+    { id: 1, label: 'AI Packaging Analysis', icon: '🔍', description: 'Analyzing packaging quality and visual elements...' },
+    { id: 2, label: 'Batch Verification', icon: '📋', description: 'Checking batch number against recalled medicines database...' },
+    { id: 3, label: 'Medicine Database Check', icon: '💊', description: 'Looking up medicine information and warnings...' },
+    { id: 4, label: 'Nearby Chemist Search', icon: '🏪', description: 'Finding verified chemists near you...' },
+  ]
+
   return (
     <div className="flex flex-col h-[700px] bg-bg-primary rounded-2xl border border-border-color overflow-hidden shadow-2xl">
       {/* Header */}
@@ -45,6 +52,15 @@ const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
             </div>
           </div>
         </div>
+        {messages.length > 0 && (
+          <button 
+            onClick={onClearHistory}
+            className="p-2 text-text-secondary hover:text-danger transition-colors flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
+          >
+            <Trash2 size={14} />
+            Clear History
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -65,7 +81,7 @@ const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
             </div>
           ) : (
             messages.map((msg) => {
-              if (msg.isSeparator) {
+              if (msg.type === 'separator' || msg.isSeparator) {
                 return (
                   <motion.div
                     key={msg.id}
@@ -81,57 +97,54 @@ const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
                   </motion.div>
                 );
               }
+
+              if (msg.type === 'pipeline_progress') {
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-bg-secondary/50 border border-border-color rounded-2xl overflow-hidden"
+                  >
+                    <div className="p-3 border-b border-border-color bg-bg-secondary flex items-center gap-2">
+                      <Sparkles size={14} className="text-primary" />
+                      <span className="text-[10px] font-bold text-text-primary uppercase tracking-widest">Analysis Pipeline</span>
+                    </div>
+                    <PipelineProgress 
+                      currentStep={currentStep} 
+                      stepResults={stepResults} 
+                      steps={STEPS} 
+                    />
+                  </motion.div>
+                )
+              }
+
+              if (msg.type === 'full_report') {
+                return (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full"
+                  >
+                    <FullReportCard pipeline={msg.pipeline} scanId={msg.scanId} />
+                  </motion.div>
+                )
+              }
+
               return (
                 <motion.div
                   key={msg.id}
-                  initial={{ opacity: 0, y: 10, x: msg.role === 'user' ? 20 : -20 }}
-                  animate={{ opacity: 1, y: 0, x: 0 }}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
                 >
-                  <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                      msg.role === 'user' ? 'bg-primary text-white' : 'bg-bg-secondary border border-border-color text-primary'
-                    }`}>
-                      {msg.role === 'user' ? 'U' : <Shield size={14} />}
-                    </div>
-                    <div className="space-y-1">
-                      <p className={`text-[10px] font-bold text-text-secondary uppercase tracking-tighter ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                        {msg.role === 'user' ? 'You' : 'MediGuard AI'}
-                      </p>
-                      <div className={`p-4 rounded-2xl shadow-sm ${
-                        msg.role === 'user' 
-                          ? 'bg-gradient-to-br from-primary to-primary-dark text-white rounded-tr-none' 
-                          : msg.isWarning 
-                            ? 'bg-warning/10 border-l-4 border-warning text-text-primary rounded-tl-none'
-                            : msg.isAnalysis 
-                              ? 'bg-transparent border-none p-0 max-w-none'
-                              : 'bg-bg-secondary border-l-4 border-primary text-text-primary rounded-tl-none prose prose-invert max-w-none'
-                      }`}>
-                        {msg.role === 'ai' ? (
-                          msg.isAnalysis ? (
-                            <AnalysisReportCard 
-                              text={msg.content} 
-                              status={msg.status} 
-                              confidence={msg.confidence} 
-                            />
-                          ) : (
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                          )
-                        ) : (
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
-                        )}
-                      </div>
-                      <p className={`text-[9px] text-text-secondary mt-1 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
+                  <ChatMessageBubble message={msg} />
                 </motion.div>
               );
             })
           )}
 
-          {isTyping && (
+          {isTyping && !currentStep && (
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -147,7 +160,7 @@ const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
                     <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
                     <motion.div animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
                   </div>
-                  <span className="text-xs text-text-secondary italic">MediGuard AI is analyzing...</span>
+                  <span className="text-xs text-text-secondary italic">MediGuard AI is thinking...</span>
                 </div>
               </div>
             </motion.div>
@@ -171,13 +184,6 @@ const ChatSection = ({ messages, onSendMessage, isTyping, hasAnalyzed }) => {
               className="w-full bg-bg-primary border border-border-color rounded-xl py-3 px-4 pr-12 text-text-primary text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none max-h-32 disabled:opacity-50"
               rows={1}
             />
-            <div className="absolute right-3 bottom-2.5 flex items-center gap-2">
-               {input.length > 400 && (
-                 <span className="text-[10px] text-text-secondary font-bold">
-                   {input.length}/500
-                 </span>
-               )}
-            </div>
           </div>
           <button
             onClick={handleSend}

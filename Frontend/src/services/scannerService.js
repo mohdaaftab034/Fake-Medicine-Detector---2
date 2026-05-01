@@ -2,16 +2,11 @@ import api from './api';
 
 const API_URL = '/scan';
 
-export const scanMedicine = async (imageFile, batchNumber = '') => {
+export const scanMedicine = async (imageFile, lat, lng) => {
   const formData = new FormData();
   formData.append('medicineImage', imageFile);
-  if (batchNumber) {
-    formData.append('batchNumber', batchNumber);
-  }
-
-  // Add dummy location for hackathon demo
-  formData.append('location[city]', 'Bangalore');
-  formData.append('location[state]', 'Karnataka');
+  if (lat) formData.append('lat', lat);
+  if (lng) formData.append('lng', lng);
 
   const response = await api.post(`${API_URL}/analyze`, formData, {
     headers: {
@@ -23,13 +18,18 @@ export const scanMedicine = async (imageFile, batchNumber = '') => {
   return response.data;
 };
 
-export const getScanHistory = async () => {
-  const response = await api.get(`${API_URL}/history`);
+export const getScanHistory = async (page = 1, limit = 20) => {
+  const response = await api.get(`${API_URL}/history?page=${page}&limit=${limit}`);
   return response.data;
 };
 
-export const chatFollowUp = async (question, context, history = []) => {
-  const response = await api.post(`${API_URL}/chat`, { question, context, history });
+export const chatFollowUp = async (question, history = [], currentScanId = null) => {
+  const response = await api.post(`${API_URL}/chat`, { question, history, currentScanId });
+  return response.data;
+};
+
+export const getScanById = async (scanId) => {
+  const response = await api.get(`${API_URL}/history/${scanId}`);
   return response.data;
 };
 

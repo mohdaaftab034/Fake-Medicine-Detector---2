@@ -48,7 +48,7 @@ export const runSeed = async () => {
     }
     
     for (const med of medicines) {
-      await Medicine.findOneAndUpdate({ name: med.name }, med, { upsert: true, new: true })
+      await Medicine.findOneAndUpdate({ name: med.name }, med, { upsert: true, returnDocument: 'after' })
     }
     console.log('30 Medicines seeded')
 
@@ -62,7 +62,7 @@ export const runSeed = async () => {
     ]
     
     for (const batch of batches) {
-      await BatchNumber.findOneAndUpdate({ batchNumber: batch.batchNumber }, batch, { upsert: true, new: true })
+      await BatchNumber.findOneAndUpdate({ batchNumber: batch.batchNumber }, batch, { upsert: true, returnDocument: 'after' })
     }
     console.log('5 recalled/investigation batches seeded')
 
@@ -80,7 +80,7 @@ export const runSeed = async () => {
     }
     
     for (const alert of alerts) {
-      await Alert.findOneAndUpdate({ title: alert.title }, alert, { upsert: true, new: true })
+      await Alert.findOneAndUpdate({ title: alert.title }, alert, { upsert: true, returnDocument: 'after' })
     }
     console.log('8 CDSCO alerts seeded')
 
@@ -116,7 +116,7 @@ export const runSeed = async () => {
     }
     
     for (const chemist of chemists) {
-      await Chemist.findOneAndUpdate({ licenseNumber: chemist.licenseNumber }, chemist, { upsert: true, new: true })
+      await Chemist.findOneAndUpdate({ licenseNumber: chemist.licenseNumber }, chemist, { upsert: true, returnDocument: 'after' })
     }
     console.log('5 Demo chemists seeded')
 
