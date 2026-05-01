@@ -13,6 +13,7 @@ import chemistRoutes from './routes/chemist.routes.js'
 import alertRoutes from './routes/alert.routes.js'
 import batchRoutes from './routes/batch.routes.js'
 import dashboardRoutes from './routes/dashboard.routes.js'
+import agentRoutes from './routes/agent.routes.js'
 import { startAllJobs } from './jobs/cdscoScraper.job.js'
 
 dotenv.config()
@@ -42,6 +43,7 @@ app.use('/api/v1/chemists', chemistRoutes)
 app.use('/api/v1/alerts', alertRoutes)
 app.use('/api/v1/batch', batchRoutes)
 app.use('/api/v1/dashboard', dashboardRoutes)
+app.use('/api/v1/agent', agentRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -140,17 +140,22 @@ const NearbyChemist = () => {
     : allNearby;
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      <div className="py-12 bg-gradient-to-br from-bg-secondary to-bg-primary border-b border-border-color">
-        <div className="max-w-6xl mx-auto px-4 text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-text-primary">
-            Find Verified <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Chemists</span>
-          </h1>
-          <p className="text-text-secondary">Leaflet + OpenStreetMap view of verified MediGuard chemists and nearby pharmacies</p>
+    <div className="mg-root">
+      <section className="mg-hero py-12 bg-bg-0 border-b border-line overflow-hidden">
+        <div className="mg-hero__bg-grid" aria-hidden />
+        <div className="mg-container relative z-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="mg-badge mg-badge--green mb-4">
+              <span className="mg-badge__dot" />
+              Geo-Verification Active
+            </span>
+            <h1 className="mg-hero__headline text-4xl md:text-6xl mb-4">Find Verified Chemists</h1>
+            <p className="mg-hero__sub mx-auto">Locate pharmacies that have been strictly verified for authentic medicine storage and licensing.</p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 xl:grid-cols-[1.4fr_0.9fr] gap-8">
+      <div className="mg-container py-12">
         <div className="space-y-6">
           <div className="rounded-3xl overflow-hidden border border-border-color bg-bg-secondary shadow-2xl">
             <MapContainer center={userLocation} zoom={14} style={{ height: '560px', width: '100%' }}>
@@ -191,19 +196,19 @@ const NearbyChemist = () => {
             </MapContainer>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { title: 'Verified Chemists', value: verifiedChemists.length, icon: ShieldCheck },
-              { title: 'Nearby Pharmacies', value: osmChemists.length, icon: MapPin },
-              { title: 'Coverage Radius', value: '2 km', icon: Navigation },
+              { title: 'Verified Chemists', value: verifiedChemists.length, icon: ShieldCheck, color: 'text-green', bg: 'bg-green-dim' },
+              { title: 'Nearby Pharmacies', value: osmChemists.length, icon: MapPin, color: 'text-accent', bg: 'bg-accent-glow' },
+              { title: 'Coverage Radius', value: '2 km', icon: Navigation, color: 'text-amber', bg: 'bg-amber/5' },
             ].map((item) => (
-              <div key={item.title} className="card flex items-center gap-4">
-                <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                  <item.icon size={22} />
+              <div key={item.title} className="mg-card flex items-center gap-5 p-6 border-line/40">
+                <div className={`p-4 rounded-2xl ${item.bg} ${item.color} shadow-sm`}>
+                  <item.icon size={28} />
                 </div>
                 <div>
-                  <p className="text-text-secondary text-sm">{item.title}</p>
-                  <p className="text-text-primary font-bold text-xl">{item.value}</p>
+                  <p className="text-[10px] uppercase tracking-widest text-text-lo font-bold mb-1">{item.title}</p>
+                  <p className="text-text-hi font-bold text-3xl">{item.value}</p>
                 </div>
               </div>
             ))}
@@ -236,32 +241,42 @@ const NearbyChemist = () => {
             </button>
           </div>
 
-          <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
+          <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
             {displayedChemists.map((chemist) => {
               const coords = chemist.coordinates || { lat: userLocation[0], lng: userLocation[1] };
               const distance = chemist.distance != null ? `${chemist.distance.toFixed(1)} km` : 'Nearby';
 
               return (
-                <div key={chemist._id || chemist.id} className="p-4 rounded-2xl border border-border-color bg-bg-primary/80 space-y-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-text-primary font-bold">{chemist.shopName || chemist.name}</p>
-                      <p className="text-text-secondary text-sm mt-1">{chemist.address}</p>
+                <div key={chemist._id || chemist.id} className="mg-card group">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <p className="text-lg font-bold text-text-hi group-hover:text-accent transition-colors">
+                        {chemist.shopName || chemist.name}
+                      </p>
+                      <p className="text-text-md text-sm mt-1 leading-relaxed">{chemist.address}</p>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${chemist.isVerified ? 'bg-success/20 text-success' : 'bg-text-secondary/15 text-text-secondary'}`}>
-                      {chemist.isVerified ? 'Verified' : 'Unverified'}
-                    </span>
+                    {chemist.isVerified ? (
+                      <span className="mg-badge mg-badge--green">Verified</span>
+                    ) : (
+                      <span className="mg-badge bg-bg-2 border-line text-text-lo">Standard</span>
+                    )}
                   </div>
 
-                  <div className="flex items-center justify-between text-sm text-text-secondary">
-                    <span>{distance}</span>
-                    <span>{chemist.source}</span>
+                  <div className="flex items-center gap-4 mt-4 text-xs font-semibold uppercase tracking-widest text-text-lo">
+                    <span className="flex items-center gap-1.5">
+                      <Navigation size={12} className="text-accent" />
+                      {distance}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <ShieldCheck size={12} className="text-accent" />
+                      {chemist.source}
+                    </span>
                   </div>
 
                   <button
                     type="button"
                     onClick={() => getDirections(coords.lat, coords.lng)}
-                    className="w-full px-4 py-3 rounded-xl bg-success text-white font-semibold hover:opacity-95 transition-all"
+                    className="mg-btn mg-btn--primary w-full mt-6 justify-center"
                   >
                     Get Directions
                   </button>
@@ -270,9 +285,9 @@ const NearbyChemist = () => {
             })}
 
             {!displayedChemists.length && (
-              <div className="text-center py-10 text-text-secondary">
-                <ListFilter size={28} className="mx-auto mb-3" />
-                No chemists available in this view.
+              <div className="text-center py-16 bg-bg-1 rounded-3xl border border-line">
+                <ListFilter size={40} className="mx-auto mb-4 text-text-lo" />
+                <p className="text-text-md">No chemists found in this criteria.</p>
               </div>
             )}
           </div>

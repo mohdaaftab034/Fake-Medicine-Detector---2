@@ -266,60 +266,88 @@ Warnings: ${p?.step3_medicineDb?.details?.warnings || 'N/A'}`
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Section: Image Upload (40%) */}
-        <div className="w-full lg:w-[40%]">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="card-glass p-6 rounded-3xl border border-border-color sticky top-24"
-          >
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-                Scanner
-              </h1>
-              <p className="text-text-secondary mt-1">AI-Powered Multi-Step Verification</p>
+    <div className="mg-root">
+      <section className="py-12 bg-bg-0 border-b border-line">
+        <div className="mg-container">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <span className="mg-badge mg-badge--green mb-3">
+                <span className="mg-badge__dot" />
+                AI-Powered Verification
+              </span>
+              <h1 className="mg-section-header__title text-left mb-2">Medicine Scanner</h1>
+              <p className="mg-section-header__sub text-left m-0">Verify authenticity using multi-step AI analysis</p>
             </div>
-            
-            <ImageSection 
-              onAnalyze={handleAnalyze} 
-              isAnalyzing={isAnalyzing} 
-              hasAnalyzed={pipelineComplete} 
-            />
+            <div className="flex gap-3">
+              <button onClick={handleClearHistory} className="mg-btn mg-btn--ghost mg-btn--sm">
+                Clear History
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="mt-6 p-4 rounded-2xl bg-primary/5 border border-primary/20">
-              <div className="flex gap-3">
-                <div className="p-2 h-fit rounded-lg bg-primary/10 text-primary">
-                  <Info size={18} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-text-primary uppercase tracking-wider">Analysis Pipeline</p>
-                  <p className="text-xs text-text-secondary mt-1 leading-relaxed">
-                    Our scanner now performs visual AI analysis, batch record verification, drug database matching, and proximity search for verified chemists.
-                  </p>
+      <div className="mg-container py-12">
+        <div className="flex flex-col lg:flex-row gap-10">
+          {/* Left Section: Image Upload (40%) */}
+          <div className="w-full lg:w-[40%]">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mg-card sticky top-24"
+            >
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-text-hi mb-2">Upload Package</h2>
+                <p className="text-sm text-text-md">Take a clear photo of the medicine's front label and batch details.</p>
+              </div>
+              
+              <ImageSection 
+                onAnalyze={handleAnalyze} 
+                isAnalyzing={isAnalyzing} 
+                hasAnalyzed={pipelineComplete} 
+              />
+
+              <div className="mt-8 p-5 rounded-xl bg-accent-glow border border-accent/20">
+                <div className="flex gap-4">
+                  <div className="p-2.5 h-fit rounded-lg bg-accent text-bg-0 shadow-glow">
+                    <Info size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-text-hi uppercase tracking-wider mb-1">How it works</p>
+                    <p className="text-xs text-text-md leading-relaxed">
+                      Our AI engine scans the packaging for visual inconsistencies, verifies batch numbers against official databases, and checks manufacturer records.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
+              
+              <div className="mt-6 flex items-center gap-3 p-4 bg-red-dim border border-red/20 rounded-xl">
+                <ShieldAlert size={18} className="text-red flex-shrink-0" />
+                <p className="text-[11px] text-text-md leading-tight">
+                  <strong>Disclaimer:</strong> {ANALYSIS_DISCLAIMER}
+                </p>
+              </div>
+            </motion.div>
+          </div>
 
-        {/* Right Section: Chat Window (60%) */}
-        <div className="w-full lg:w-[60%]">
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <ChatSection 
-              messages={messages} 
-              onSendMessage={handleSendMessage} 
-              onClearHistory={handleClearHistory}
-              isTyping={isTyping}
-              hasAnalyzed={pipelineComplete}
-              currentStep={currentStep}
-              stepResults={stepResults}
-            />
-          </motion.div>
+          {/* Right Section: Chat Window (60%) */}
+          <div className="w-full lg:w-[60%]">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <ChatSection 
+                messages={messages} 
+                onSendMessage={handleSendMessage} 
+                onClearHistory={handleClearHistory}
+                isTyping={isTyping}
+                hasAnalyzed={pipelineComplete}
+                currentStep={currentStep}
+                stepResults={stepResults}
+              />
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>

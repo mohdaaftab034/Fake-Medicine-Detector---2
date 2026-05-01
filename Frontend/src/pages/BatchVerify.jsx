@@ -54,171 +54,174 @@ const BatchVerify = () => {
   const StatusIcon = config?.icon;
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      {/* Header */}
-      <div className="py-12 bg-gradient-to-br from-bg-secondary to-bg-primary border-b border-border-color">
-        <div className="max-w-4xl mx-auto px-4 text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-text-primary">
-            Batch <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Verification</span>
-          </h1>
-          <p className="text-text-secondary">Verify medicines using batch numbers and manufacturer information</p>
+    <div className="mg-root">
+      <section className="mg-hero py-16 bg-bg-0 border-b border-line overflow-hidden">
+        <div className="mg-hero__bg-grid" aria-hidden />
+        <div className="mg-container relative z-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="mg-badge mg-badge--green mb-4">
+              <span className="mg-badge__dot" />
+              Official Database Sync
+            </span>
+            <h1 className="mg-hero__headline text-4xl md:text-6xl mb-4">Batch Verification</h1>
+            <p className="mg-hero__sub mx-auto">Verify medicines against manufacturer records and CDSCO recall databases.</p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-3xl mx-auto px-4 py-12">
-        {result ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            <div className={`p-8 rounded-3xl border-2 ${verification?.status === 'RECALLED' ? 'border-danger bg-danger/10' : verification?.status === 'UNDER_INVESTIGATION' ? 'border-warning bg-warning/10' : 'border-success bg-success/10'}`}>
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-2xl bg-bg-primary/80 border border-border-color">
-                  {StatusIcon && <StatusIcon size={32} className={verification?.status === 'RECALLED' ? 'text-danger' : verification?.status === 'UNDER_INVESTIGATION' ? 'text-warning' : 'text-success'} />}
-                </div>
-                <div className="flex-1">
-                  <p className="text-2xl font-bold text-text-primary">{config?.title}</p>
-                  <p className="text-text-secondary mt-1">{config?.subtitle}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                <div className="bg-bg-primary/80 p-4 rounded-2xl border border-border-color">
-                  <p className="text-xs uppercase tracking-wider text-text-secondary font-bold">Batch Number</p>
-                  <p className="text-lg font-semibold text-text-primary mt-1">{verification?.batchNumber}</p>
-                </div>
-                <div className="bg-bg-primary/80 p-4 rounded-2xl border border-border-color">
-                  <p className="text-xs uppercase tracking-wider text-text-secondary font-bold">Status</p>
-                  <p className="text-lg font-semibold text-text-primary mt-1">{verification?.status}</p>
-                </div>
-                {verification?.medicine && (
-                  <div className="bg-bg-primary/80 p-4 rounded-2xl border border-border-color md:col-span-2">
-                    <p className="text-xs uppercase tracking-wider text-text-secondary font-bold">Medicine</p>
-                    <p className="text-lg font-semibold text-text-primary mt-1">{verification.medicine}</p>
-                  </div>
-                )}
-                {verification?.manufacturer && (
-                  <div className="bg-bg-primary/80 p-4 rounded-2xl border border-border-color md:col-span-2">
-                    <p className="text-xs uppercase tracking-wider text-text-secondary font-bold">Manufacturer</p>
-                    <p className="text-lg font-semibold text-text-primary mt-1">{verification.manufacturer}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200">
-                <p className="font-semibold">{verification?.message}</p>
-                {verification?.safetyNote && <p className="text-sm mt-2 text-amber-100/90">{verification.safetyNote}</p>}
-                {verification?.action && <p className="text-sm mt-2 text-amber-100/90">{verification.action}</p>}
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-3 mt-6">
-                <button
-                  onClick={() => {
-                    clearResult();
-                    setBatchNumber('');
-                    setErrors({});
-                    navigate('/batch-verify', { replace: true });
-                  }}
-                  className="btn-primary flex-1"
-                >
-                  Verify Another Batch
-                </button>
-                <button
-                  onClick={() => navigate('/nearby-chemist')}
-                  className="flex-1 px-6 py-4 rounded-2xl bg-success text-white font-semibold hover:opacity-95 transition-all"
-                >
-                  Find Verified Chemist
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        ) : (
-          <motion.form
-            onSubmit={handleSubmit}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {/* Info Alert */}
-            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 flex gap-3">
-              <AlertCircle className="text-primary flex-shrink-0 mt-0.5" size={20} />
-              <div>
-                <p className="text-primary font-semibold mb-1">How to find batch number</p>
-                <p className="text-primary/80 text-sm">
-                  Look for "Batch No." or "Lot No." printed on the medicine packet. It's usually a combination of letters and
-                  numbers.
-                </p>
-              </div>
-            </div>
-
-            {/* Batch Number Input */}
-            <label className="block">
-              <span className="text-text-secondary text-sm mb-2 block font-semibold">Batch Number *</span>
-              <input
-                type="text"
-                value={batchNumber}
-                onChange={(e) => {
-                  setBatchNumber(e.target.value);
-                  if (errors.batchNumber) setErrors((prev) => ({ ...prev, batchNumber: '' }));
-                }}
-                placeholder="e.g., BAY2024001 or 123456AB"
-                className="input-field"
-              />
-              {errors.batchNumber && <p className="text-danger text-sm mt-2">{errors.batchNumber}</p>}
-            </label>
-
-            {/* Verify Button */}
-            <motion.button
-              type="submit"
-              disabled={scanning}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="btn-primary w-full text-lg py-4"
+      <div className="mg-container py-16">
+        <div className="max-w-3xl mx-auto">
+          {result ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8"
             >
-              {scanning ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-bg-primary border-t-transparent rounded-full animate-spin"></div>
-                  Verifying...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
-                  <Check size={20} />
-                  Verify Now
-                </span>
-              )}
-            </motion.button>
-
-            {/* Loading State */}
-            {scanning && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-6 rounded-lg bg-bg-secondary border border-primary/30 space-y-4"
-              >
-                <p className="text-text-primary font-semibold">Verifying batch information...</p>
-                <div className="w-full bg-bg-primary rounded-full h-2 overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-primary to-secondary"
-                    initial={{ width: 0 }}
-                    animate={{ width: '100%' }}
-                    transition={{ duration: 2, ease: 'easeInOut' }}
-                  />
+              <div className={`p-8 rounded-[2rem] border-2 shadow-xl ${
+                verification?.status === 'RECALLED' 
+                ? 'border-red bg-red-dim' 
+                : verification?.status === 'UNDER_INVESTIGATION' 
+                ? 'border-amber bg-amber/5' 
+                : 'border-green bg-green-dim'
+              }`}>
+                <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
+                  <div className={`p-4 rounded-2xl ${
+                    verification?.status === 'RECALLED' ? 'bg-red text-white' : 
+                    verification?.status === 'UNDER_INVESTIGATION' ? 'bg-amber text-white' : 
+                    'bg-green text-white'
+                  }`}>
+                    {StatusIcon && <StatusIcon size={40} />}
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-2xl md:text-3xl font-bold text-text-hi mb-2">{config?.title}</h2>
+                    <p className="text-text-md leading-relaxed">{config?.subtitle}</p>
+                  </div>
                 </div>
-              </motion.div>
-            )}
 
-            {/* Help Text */}
-            <div className="p-4 rounded-lg bg-bg-secondary border border-border-color space-y-2">
-              <p className="text-text-secondary text-sm font-semibold">💡 Tip:</p>
-              <ul className="text-text-secondary text-sm space-y-1">
-                <li>• Not being listed here does not prove the medicine is genuine</li>
-                <li>• Ask the chemist to show the invoice and manufacturer details</li>
-                <li>• When in doubt, call CDSCO helpline 1800-180-3024</li>
-              </ul>
-            </div>
-          </motion.form>
-        )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-bg-1 p-5 rounded-2xl border border-line shadow-sm">
+                    <p className="text-[10px] uppercase tracking-widest text-text-lo font-bold mb-1">Batch Number</p>
+                    <p className="text-xl font-bold text-text-hi">{verification?.batchNumber}</p>
+                  </div>
+                  <div className="bg-bg-1 p-5 rounded-2xl border border-line shadow-sm">
+                    <p className="text-[10px] uppercase tracking-widest text-text-lo font-bold mb-1">Current Status</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className={`w-2 h-2 rounded-full animate-pulse ${
+                        verification?.status === 'RECALLED' ? 'bg-red' : 
+                        verification?.status === 'UNDER_INVESTIGATION' ? 'bg-amber' : 
+                        'bg-green'
+                      }`} />
+                      <p className="text-xl font-bold text-text-hi">{verification?.status}</p>
+                    </div>
+                  </div>
+                  {verification?.medicine && (
+                    <div className="bg-bg-1 p-5 rounded-2xl border border-line md:col-span-2 shadow-sm">
+                      <p className="text-[10px] uppercase tracking-widest text-text-lo font-bold mb-1">Medicine Name</p>
+                      <p className="text-xl font-bold text-text-hi">{verification.medicine}</p>
+                    </div>
+                  )}
+                  {verification?.manufacturer && (
+                    <div className="bg-bg-1 p-5 rounded-2xl border border-line md:col-span-2 shadow-sm">
+                      <p className="text-[10px] uppercase tracking-widest text-text-lo font-bold mb-1">Manufacturer</p>
+                      <p className="text-xl font-bold text-text-hi">{verification.manufacturer}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-8 p-6 rounded-2xl bg-bg-0/50 border border-line/50 backdrop-blur-sm">
+                  <p className="text-text-hi font-bold text-lg mb-2">{verification?.message}</p>
+                  {verification?.safetyNote && <p className="text-text-md text-sm leading-relaxed">{verification.safetyNote}</p>}
+                  {verification?.action && (
+                    <div className="mt-4 p-3 rounded-lg bg-accent-glow border border-accent/20 text-accent font-semibold text-sm inline-block">
+                      Action Required: {verification.action}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4 mt-8 pt-6 border-t border-line/20">
+                  <button
+                    onClick={() => {
+                      clearResult();
+                      setBatchNumber('');
+                      setErrors({});
+                      navigate('/batch-verify', { replace: true });
+                    }}
+                    className="mg-btn mg-btn--primary flex-1 justify-center py-4"
+                  >
+                    Verify Another Batch
+                  </button>
+                  <button
+                    onClick={() => navigate('/nearby-chemist')}
+                    className="mg-btn mg-btn--ghost flex-1 justify-center py-4"
+                  >
+                    Find Verified Chemist
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.form
+              onSubmit={handleSubmit}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8 mg-card p-10"
+            >
+              <div className="p-5 rounded-2xl bg-accent-glow border border-accent/20 flex gap-4">
+                <AlertCircle className="text-accent flex-shrink-0 mt-0.5" size={24} />
+                <div>
+                  <p className="text-text-hi font-bold mb-1">Finding the batch number</p>
+                  <p className="text-text-md text-sm leading-relaxed">
+                    Look for "Batch No." or "Lot No." printed on the medicine strip or box. It's usually near the expiry date.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="block text-sm font-bold text-text-hi uppercase tracking-widest">
+                  Batch Number
+                </label>
+                <input
+                  type="text"
+                  value={batchNumber}
+                  onChange={(e) => {
+                    setBatchNumber(e.target.value);
+                    if (errors.batchNumber) setErrors((prev) => ({ ...prev, batchNumber: '' }));
+                  }}
+                  placeholder="e.g., BAY2024001"
+                  className="input-field py-4 px-6 text-lg"
+                />
+                {errors.batchNumber && <p className="text-red text-sm font-medium mt-1">{errors.batchNumber}</p>}
+              </div>
+
+              <button
+                type="submit"
+                disabled={scanning}
+                className="mg-btn mg-btn--primary w-full justify-center text-lg py-5 shadow-glow"
+              >
+                {scanning ? (
+                  <span className="flex items-center gap-3">
+                    <div className="w-5 h-5 border-2 border-bg-0 border-t-transparent rounded-full animate-spin" />
+                    Verifying...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-3">
+                    <ShieldCheck size={22} />
+                    Verify Now
+                  </span>
+                )}
+              </button>
+
+              <div className="p-6 rounded-2xl bg-bg-2 border border-line space-y-3">
+                <p className="text-text-hi font-bold text-sm">Important Safety Notice:</p>
+                <ul className="text-text-md text-sm space-y-2">
+                  <li className="flex gap-2"><span>•</span> Not being in the recall list doesn't guarantee the medicine is genuine.</li>
+                  <li className="flex gap-2"><span>•</span> Always purchase from licensed and government-verified chemists.</li>
+                  <li className="flex gap-2"><span>•</span> In case of doubt, report immediately using our "Report Fake" tool.</li>
+                </ul>
+              </div>
+            </motion.form>
+          )}
+        </div>
       </div>
     </div>
   );

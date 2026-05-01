@@ -25,6 +25,7 @@ import ScanHistory from './pages/dashboard/ScanHistory.jsx';
 import ChemistDashboard from './pages/dashboard/ChemistDashboard.jsx';
 import AdminDashboard from './pages/dashboard/AdminDashboard.jsx';
 import AccessDenied from './pages/AccessDenied.jsx';
+import AgentChat from './pages/AgentChat.jsx';
 
 // Routes
 import { ROUTES } from './utils/constants.js';
@@ -102,6 +103,15 @@ function App() {
                   element={
                     <ProtectedRoute requiredRole="admin">
                       <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/agent"
+                  element={
+                    <ProtectedRoute>
+                      <AgentChat />
                     </ProtectedRoute>
                   }
                 />

@@ -239,25 +239,30 @@ const MedicineInfo = () => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-primary text-text-primary">
-      <div className="max-w-7xl mx-auto px-4 py-8 lg:py-10">
-        <section className="mb-8" ref={suggestionRef}>
-          <div className="rounded-2xl border border-border-color bg-bg-secondary p-6 md:p-8 shadow-xl">
-            <h1 className="text-3xl md:text-4xl font-bold">Medicine Information</h1>
-            <p className="mt-2 text-text-secondary max-w-3xl">
-              Search any medicine to get complete information about usage, dosage, side effects and more.
+    <div className="mg-root">
+      <section className="mg-hero py-12 bg-bg-0 border-b border-line overflow-hidden">
+        <div className="mg-hero__bg-grid" aria-hidden />
+        <div className="mg-container relative z-10">
+          <div className="rounded-2xl bg-bg-1/80 backdrop-blur-md p-8 md:p-12 border border-line shadow-2xl" ref={suggestionRef}>
+            <span className="mg-badge mg-badge--green mb-4">
+              <span className="mg-badge__dot" />
+              Drug Knowledge Base
+            </span>
+            <h1 className="mg-hero__headline text-4xl md:text-6xl mb-4">Medicine Information</h1>
+            <p className="mg-hero__sub mb-8">
+              Access comprehensive data on over 10,000+ medicines, including dosage, side effects, and safety guidelines.
             </p>
 
-            <div className="mt-6 relative">
-              <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
-                  <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
+                  <Search size={22} className="absolute left-5 top-1/2 -translate-y-1/2 text-text-lo" />
                   <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={onEnterSearch}
                     placeholder="Search by brand or generic name..."
-                    className="w-full rounded-xl border border-border-color bg-bg-primary pl-11 pr-12 py-4 text-text-primary outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="input-field pl-14 pr-12 py-5 text-lg"
                   />
                   {searchQuery && (
                     <button
@@ -267,10 +272,9 @@ const MedicineInfo = () => {
                         setSuggestions([]);
                         setShowSuggestions(false);
                       }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-text-secondary hover:text-text-primary"
-                      aria-label="Clear search"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg text-text-lo hover:text-text-hi"
                     >
-                      <X size={16} />
+                      <X size={20} />
                     </button>
                   )}
                 </div>
@@ -278,23 +282,23 @@ const MedicineInfo = () => {
                 <button
                   type="button"
                   onClick={onSearchClick}
-                  className="h-[52px] px-6 rounded-xl bg-primary text-white font-semibold hover:opacity-90 whitespace-nowrap"
+                  className="mg-btn mg-btn--primary px-10 text-lg shadow-glow"
                 >
                   Search
                 </button>
               </div>
 
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute mt-2 w-full rounded-xl border border-border-color bg-bg-secondary shadow-2xl z-30 overflow-hidden">
+                <div className="absolute mt-3 w-full rounded-2xl border border-line bg-bg-1 shadow-2xl z-30 overflow-hidden backdrop-blur-xl">
                   {suggestions.slice(0, 6).map((item, idx) => (
                     <button
                       key={`${item.name}-${idx}`}
                       type="button"
                       onClick={() => onSelectSuggestion(item.name)}
-                      className="w-full text-left px-4 py-3 hover:bg-bg-primary border-b border-border-color last:border-b-0"
+                      className="w-full text-left px-6 py-4 hover:bg-bg-2 border-b border-line last:border-b-0 transition-colors"
                     >
-                      <p className="font-semibold text-text-primary">{item.name}</p>
-                      <p className="text-xs text-text-secondary">{item.manufacturer || 'Unknown manufacturer'}</p>
+                      <p className="font-bold text-text-hi">{item.name}</p>
+                      <p className="text-xs text-text-md mt-0.5">{item.manufacturer || 'Unknown manufacturer'}</p>
                     </button>
                   ))}
                 </div>
@@ -302,8 +306,8 @@ const MedicineInfo = () => {
             </div>
 
             {!hasSearched && (
-              <div className="mt-5">
-                <p className="text-sm text-text-secondary mb-2">Search Examples</p>
+              <div className="mt-8 pt-8 border-t border-line">
+                <p className="text-xs font-bold text-text-lo uppercase tracking-widest mb-4">Trending Searches</p>
                 <div className="flex flex-wrap gap-2">
                   {SEARCH_EXAMPLES.map((example) => (
                     <button
@@ -313,7 +317,7 @@ const MedicineInfo = () => {
                         setSearchQuery(example);
                         runSearch(example);
                       }}
-                      className="px-3 py-1.5 rounded-full text-sm border border-border-color bg-bg-primary hover:border-primary hover:text-primary transition-colors"
+                      className="mg-btn mg-btn--ghost mg-btn--sm hover:bg-accent-glow hover:text-accent hover:border-accent"
                     >
                       {example}
                     </button>
@@ -322,9 +326,10 @@ const MedicineInfo = () => {
               </div>
             )}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section>
+      <div className="mg-container py-12">
           {isSearching ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, idx) => (
@@ -338,31 +343,35 @@ const MedicineInfo = () => {
               ))}
             </div>
           ) : results.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {results.map((med) => (
                 <motion.div
                   key={med.id}
-                  whileHover={{ scale: 1.02 }}
-                  className="rounded-2xl border border-border-color bg-bg-secondary p-5 shadow-lg hover:shadow-primary/10"
+                  whileHover={{ y: -5 }}
+                  className="mg-card group"
                 >
-                  <h3 className="text-xl font-bold text-text-primary">{med.name}</h3>
-                  <p className="text-sm text-text-secondary mt-1">{med.genericName || 'Not available'}</p>
+                  <h3 className="text-xl font-bold text-text-hi group-hover:text-accent transition-colors">{med.name}</h3>
+                  <p className="text-sm text-text-md mt-1 italic">{med.genericName || 'Not available'}</p>
 
-                  <div className="mt-3 flex items-center gap-2 text-sm text-text-secondary">
-                    <Building2 size={15} />
+                  <div className="mt-4 flex items-center gap-2 text-sm text-text-md">
+                    <Building2 size={15} className="text-accent" />
                     <span>{med.manufacturer || 'Unknown manufacturer'}</span>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="text-xs px-2 py-1 rounded-full bg-bg-primary border border-border-color text-text-secondary">
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <span className="mg-badge bg-bg-2 border-line text-text-md">
                       {med.dosageForm || 'Not specified'}
                     </span>
                     {med.requiresPrescription ? (
-                      <span className="text-xs px-2 py-1 rounded-full bg-danger/20 text-danger">Rx</span>
+                      <span className="mg-badge mg-badge--red">Rx Required</span>
                     ) : (
-                      <span className="text-xs px-2 py-1 rounded-full bg-success/20 text-success">OTC</span>
+                      <span className="mg-badge mg-badge--green">OTC</span>
                     )}
-                    {sourceBadge(med.source)}
+                    {med.source === 'Local' ? (
+                      <span className="mg-badge bg-accent-glow text-accent border-accent/20">Indian DB</span>
+                    ) : (
+                      <span className="mg-badge bg-amber/10 text-amber border-amber/20">OpenFDA</span>
+                    )}
                   </div>
 
                   <button
@@ -372,9 +381,9 @@ const MedicineInfo = () => {
                       setActiveTab('overview');
                       setExpandedSections({});
                     }}
-                    className="mt-5 w-full rounded-xl py-2.5 bg-primary text-white font-semibold hover:opacity-90"
+                    className="mg-btn mg-btn--primary w-full mt-6 justify-center"
                   >
-                    View Details
+                    View Full Details
                   </button>
                 </motion.div>
               ))}
@@ -393,7 +402,6 @@ const MedicineInfo = () => {
               {error}
             </div>
           )}
-        </section>
       </div>
 
       <AnimatePresence>

@@ -1,347 +1,343 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Barcode, AlertTriangle, MapPin, Bell, BookOpen, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ShieldCheck, Barcode, AlertTriangle, MapPin, Bell, BookOpen, ArrowRight, ArrowUpRight, Check } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
 import { AppContext } from '../context/AppContext.jsx';
 import { ROUTES } from '../utils/constants.js';
 
-const Home = () => {
-  const { activeAlerts } = useContext(AppContext);
-  const [counts, setCounts] = useState({
-    fakePercentage: 0,
-    verified: 0,
-    chemists: 0,
-    states: 0,
-  });
+const CountUp = ({ end, suffix = '', duration = 2000 }) => {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
 
-  // Count up animation
-  React.useEffect(() => {
-    const duration = 2000;
+  useEffect(() => {
+    if (!inView) return;
     const startTime = Date.now();
-
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
-      setCounts({
-        fakePercentage: Math.floor(25 * progress),
-        verified: Math.floor(10000 * progress),
-        chemists: Math.floor(500 * progress),
-        states: Math.floor(48 * progress),
-      });
-
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(end * eased));
       if (progress === 1) clearInterval(interval);
     }, 16);
-
     return () => clearInterval(interval);
-  }, []);
+  }, [inView, end, duration]);
+
+  return <span ref={ref}>{count}{suffix}</span>;
+};
+
+const Home = () => {
+  const { activeAlerts } = useContext(AppContext);
 
   const features = [
-    {
-      icon: ShieldCheck,
-      title: 'Scanner',
-      description: 'Scan medicine photos to instantly verify authenticity',
-    },
-    {
-      icon: Barcode,
-      title: 'Batch Verify',
-      description: 'Verify medicines using batch numbers and manufacturer data',
-    },
-    {
-      icon: AlertTriangle,
-      title: 'Report Fake',
-      description: 'Report fake medicines directly to CDSCO authorities',
-    },
-    {
-      icon: MapPin,
-      title: 'Find Chemist',
-      description: 'Locate verified and trusted chemist shops near you',
-    },
-    {
-      icon: Bell,
-      title: 'Real-time Alerts',
-      description: 'Get notified about fake medicine batches in your area',
-    },
-    {
-      icon: BookOpen,
-      title: 'Medicine Info',
-      description: 'Learn how to identify genuine medicines and spot counterfeits',
-    },
+    { icon: ShieldCheck, title: 'AI Scanner', description: 'Upload a photo — our model identifies counterfeits in under 3 seconds.', tag: 'Most Used' },
+    { icon: Barcode, title: 'Batch Verify', description: 'Cross-reference batch numbers against manufacturer and CDSCO records.', tag: null },
+    { icon: AlertTriangle, title: 'Report Fake', description: 'Flag suspicious medicines directly to regulatory authorities.', tag: null },
+    { icon: MapPin, title: 'Find Chemist', description: 'Locate licensed, government-verified pharmacies near you.', tag: null },
+    { icon: Bell, title: 'Safety Alerts', description: 'Real-time push notifications about recalled or counterfeit batches.', tag: 'Live' },
+    { icon: BookOpen, title: 'Drug Database', description: 'Comprehensive library of authentic packaging, seals, and batch formats.', tag: null },
   ];
 
   const testimonials = [
-    {
-      initials: 'RK',
-      name: 'Raj Kumar',
-      city: 'Bangalore',
-      text: 'MediGuard helped me identify a counterfeit medicine I bought. Reported it immediately!',
-    },
-    {
-      initials: 'PS',
-      name: 'Priya Sharma',
-      city: 'Delhi',
-      text: 'The app is super easy to use. Scan, verify, done! Highly recommended for everyone.',
-    },
-    {
-      initials: 'AM',
-      name: 'Ahmed Mohammed',
-      city: 'Mumbai',
-      text: 'Finally a trusted way to verify medicines. Peace of mind for my family!',
-    },
+    { initials: 'RK', name: 'Raj Kumar', city: 'Bengaluru', text: 'Caught a counterfeit paracetamol before giving it to my child. MediGuard literally saved lives in my household.' },
+    { initials: 'PS', name: 'Priya Sharma', city: 'New Delhi', text: 'Simple, fast, accurate. I scan every purchase now. The peace of mind is worth it.' },
+    { initials: 'AM', name: 'Ahmed Mohammed', city: 'Mumbai', text: 'Reported a fake batch through the app. CDSCO contacted me within 48 hours. This works.' },
   ];
 
-  const steps = [
-    { icon: '📱', title: 'Upload Photo', description: 'Take a photo of your medicine' },
-    { icon: '🤖', title: 'AI Analyzes', description: 'AI scans and analyzes the medicine' },
-    { icon: '✅', title: 'Get Result', description: 'Instant verification result' },
+  const stats = [
+    { value: 25, suffix: '%', label: 'of Indian medicines are counterfeit', sub: 'WHO Estimate' },
+    { value: 10000, suffix: '+', label: 'Medicines verified', sub: 'This month' },
+    { value: 500, suffix: '+', label: 'Trusted chemists', sub: 'Nationwide' },
+    { value: 28, suffix: '', label: 'States covered', sub: 'And growing' },
   ];
 
   return (
-    <div className="space-y-0 overflow-x-hidden">
-      {/* Hero Section - Redesigned for Minimalist & Interactive Look */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-bg-primary">
-        {/* Dynamic Background Elements */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 rounded-full blur-[120px] animate-pulse" />
-          
-          {/* Interactive Floating Particles */}
-          {[...Array(15)].map((_, i) => (
+    <div className="mg-root">
+
+      {/* ─── HERO ─────────────────────────────────────────────────── */}
+      <section className="mg-hero">
+        <div className="mg-hero__bg-grid" aria-hidden />
+        <div className="mg-hero__blob mg-hero__blob--1" aria-hidden />
+        <div className="mg-hero__blob mg-hero__blob--2" aria-hidden />
+
+        <div className="mg-container mg-hero__inner">
+          <motion.div
+            className="mg-hero__eyebrow"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <span className="mg-badge mg-badge--green">
+              <span className="mg-badge__dot" />
+              CDSCO Integrated Platform
+            </span>
+          </motion.div>
+
+          <motion.h1
+            className="mg-hero__headline"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          >
+            Is your medicine
+            <br />
+            <em className="mg-hero__headline--accent">real?</em>
+          </motion.h1>
+
+          <motion.p
+            className="mg-hero__sub"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          >
+            MediGuard uses AI to verify the authenticity of medicines in seconds —
+            protecting you, your family, and India's pharmaceutical supply chain.
+          </motion.p>
+
+          <motion.div
+            className="mg-hero__actions"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Link to={ROUTES.SCANNER} className="mg-btn mg-btn--primary">
+              <ShieldCheck size={18} />
+              Scan a Medicine
+            </Link>
+            <Link to={ROUTES.BATCH_VERIFY} className="mg-btn mg-btn--ghost">
+              Verify Batch Number
+              <ArrowRight size={16} />
+            </Link>
+          </motion.div>
+
+          <motion.div
+            className="mg-hero__trust"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 0.5 }}
+          >
+            {['Free to use', 'No sign-up required', 'CDSCO verified data'].map((t) => (
+              <span key={t} className="mg-hero__trust-item">
+                <Check size={13} strokeWidth={2.5} />
+                {t}
+              </span>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── STATS ────────────────────────────────────────────────── */}
+      <section className="mg-stats">
+        <div className="mg-container mg-stats__grid">
+          {stats.map((s, i) => (
             <motion.div
               key={i}
-              className="absolute w-1 h-1 bg-primary/40 rounded-full"
-              initial={{ x: Math.random() * 100 + '%', y: Math.random() * 100 + '%' }}
-              animate={{
-                y: [0, -100, 0],
-                opacity: [0.2, 0.8, 0.2],
-                scale: [1, 1.5, 1]
-              }}
-              transition={{
-                duration: Math.random() * 10 + 10,
-                repeat: Infinity,
-                ease: "linear"
-              }}
-            />
+              className="mg-stat"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p className="mg-stat__value">
+                <CountUp end={s.value} suffix={s.suffix} />
+              </p>
+              <p className="mg-stat__label">{s.label}</p>
+              <p className="mg-stat__sub">{s.sub}</p>
+            </motion.div>
           ))}
         </div>
+      </section>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "circOut" }}
-          >
-            <span className="inline-block px-4 py-1.5 mb-6 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.2em]">
-              AI-Powered Safety
-            </span>
-            <h1 className="text-6xl md:text-8xl font-black text-text-primary tracking-tight leading-[0.9] mb-8">
-              Verify your <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_auto] animate-gradient-flow">Medicine.</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-text-secondary max-w-xl mx-auto mb-10 leading-relaxed font-medium">
-              The smartest way to ensure your health. <br className="hidden md:block" />
-              One scan. Instant results. Total peace of mind.
-            </p>
+      {/* ─── ALERT BANNER ─────────────────────────────────────────── */}
+      {activeAlerts?.length > 0 && (
+        <div className="mg-container">
+          <Link to={ROUTES.ALERTS} className="mg-alert-banner">
+            <div className="mg-alert-banner__left">
+              <span className="mg-alert-banner__icon">
+                <AlertTriangle size={16} />
+              </span>
+              <span>
+                <strong>{activeAlerts.length} active alert{activeAlerts.length > 1 ? 's' : ''}:</strong>
+                {' '}counterfeit batches detected in circulation.
+              </span>
+            </div>
+            <span className="mg-alert-banner__cta">View Alerts <ArrowRight size={14} /></span>
+          </Link>
+        </div>
+      )}
 
-            <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Link to={ROUTES.SCANNER} className="px-10 py-5 bg-primary text-white rounded-2xl font-bold text-lg shadow-2xl shadow-primary/30 flex items-center gap-3 group">
-                  <ShieldCheck size={24} />
-                  Start Scanning
-                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
+      {/* ─── FEATURES ─────────────────────────────────────────────── */}
+      <section className="mg-features">
+        <div className="mg-container">
+          <div className="mg-section-header">
+            <p className="mg-section-header__eyebrow">Platform</p>
+            <h2 className="mg-section-header__title">Everything you need to stay safe</h2>
+            <p className="mg-section-header__sub">Six tools. One mission: zero counterfeit medicines.</p>
+          </div>
+
+          <div className="mg-features__grid">
+            {features.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <motion.div
+                  key={i}
+                  className="mg-feature-card"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.07, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  {f.tag && <span className="mg-feature-card__tag">{f.tag}</span>}
+                  <div className="mg-feature-card__icon">
+                    <Icon size={22} strokeWidth={1.75} />
+                  </div>
+                  <h3 className="mg-feature-card__title">{f.title}</h3>
+                  <p className="mg-feature-card__desc">{f.description}</p>
+                  <span className="mg-feature-card__arrow">
+                    <ArrowUpRight size={16} />
+                  </span>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── HOW IT WORKS ─────────────────────────────────────────── */}
+      <section className="mg-how">
+        <div className="mg-container">
+          <div className="mg-how__inner">
+            <div className="mg-how__left">
+              <p className="mg-section-header__eyebrow">How it works</p>
+              <h2 className="mg-how__title">Three steps.<br />Total certainty.</h2>
+              <p className="mg-how__sub">
+                No medical expertise required. If it has a label,
+                MediGuard can read it.
+              </p>
+              <Link to={ROUTES.SCANNER} className="mg-btn mg-btn--primary mg-how__cta">
+                Try it now <ArrowRight size={16} />
+              </Link>
+            </div>
+
+            <div className="mg-how__steps">
+              {[
+                { num: '01', title: 'Photograph the label', desc: 'Hold the medicine up and snap a photo, or upload one from your gallery.' },
+                { num: '02', title: 'AI analysis', desc: 'Our model checks fonts, seals, batch codes, and manufacturer data in under 3s.' },
+                { num: '03', title: 'Instant verdict', desc: 'Get a clear Genuine / Suspect result with a detailed confidence breakdown.' },
+              ].map((step, i) => (
+                <motion.div
+                  key={i}
+                  className="mg-step"
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.12, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <span className="mg-step__num">{step.num}</span>
+                  <div>
+                    <h3 className="mg-step__title">{step.title}</h3>
+                    <p className="mg-step__desc">{step.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TEAM ─────────────────────────────────────────────────── */}
+      <section className="mg-team">
+        <div className="mg-container">
+          <div className="mg-section-header">
+            <p className="mg-section-header__eyebrow">The people</p>
+            <h2 className="mg-section-header__title">Built by a team that cares</h2>
+          </div>
+
+          <div className="mg-team__grid">
+            {[
+              { name: 'Mohd Aaftab', role: 'Full Stack Developer', bio: 'Expert in building scalable end-to-end applications with modern tech stacks.', gradient: 'linear-gradient(135deg, #0d7377 0%, #14a085 100%)', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200&h=200' },
+              { name: 'Shrishti Mishra', role: 'Team Lead', bio: 'Strategic leader focused on project management and ensuring top-notch delivery.', gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200&h=200' },
+              { name: 'Mayank Choudhery', role: 'Backend Developer', bio: 'Backend specialist with a passion for robust APIs and secure database architectures.', gradient: 'linear-gradient(135deg, #2d3436 0%, #636e72 100%)', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200&h=200' },
+            ].map((m, i) => (
+              <motion.div
+                key={i}
+                className="mg-team-card"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <div className="mg-team-card__avatar-wrap relative overflow-hidden rounded-xl mb-4 h-48 w-full">
+                  <img src={m.image} alt={m.name} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
+                  <div className="absolute inset-0 bg-accent/10 mix-blend-multiply" />
+                </div>
+                <div className="mg-team-card__body">
+                  <h3 className="mg-team-card__name text-xl font-bold">{m.name}</h3>
+                  <p className="mg-team-card__role text-accent font-bold text-xs uppercase tracking-widest mt-1 mb-3">{m.role}</p>
+                  <p className="mg-team-card__bio text-sm opacity-80 leading-relaxed">{m.bio}</p>
+                </div>
               </motion.div>
-              
-              <Link to={ROUTES.BATCH_VERIFY} className="px-8 py-5 bg-bg-secondary text-text-primary border border-border-color rounded-2xl font-bold hover:bg-bg-primary transition-all">
-                Verify Batch
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TESTIMONIALS ─────────────────────────────────────────── */}
+      <section className="mg-testimonials">
+        <div className="mg-container">
+          <div className="mg-section-header">
+            <p className="mg-section-header__eyebrow">Stories</p>
+            <h2 className="mg-section-header__title">Real people. Real impact.</h2>
+          </div>
+
+          <div className="mg-testimonials__grid">
+            {testimonials.map((t, i) => (
+              <motion.blockquote
+                key={i}
+                className="mg-testimonial"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.5 }}
+              >
+                <p className="mg-testimonial__text">"{t.text}"</p>
+                <footer className="mg-testimonial__footer">
+                  <div className="mg-testimonial__avatar">{t.initials}</div>
+                  <div>
+                    <p className="mg-testimonial__name">{t.name}</p>
+                    <p className="mg-testimonial__city">{t.city}</p>
+                  </div>
+                </footer>
+              </motion.blockquote>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CTA ──────────────────────────────────────────────────── */}
+      <section className="mg-cta">
+        <div className="mg-container mg-cta__inner">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="mg-cta__title">Verify your next purchase.</h2>
+            <p className="mg-cta__sub">It takes less time than reading the label. And it could save your life.</p>
+            <div className="mg-hero__actions">
+              <Link to={ROUTES.SCANNER} className="mg-btn mg-btn--primary">
+                <ShieldCheck size={18} />
+                Start Scanning — Free
+              </Link>
+              <Link to="/register" className="mg-btn mg-btn--ghost">
+                Create an account
               </Link>
             </div>
           </motion.div>
         </div>
-
-        {/* Scroll Indicator */}
-        <motion.div 
-          animate={{ y: [0, 10, 0] }} 
-          transition={{ repeat: Infinity, duration: 2 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 text-text-secondary/40"
-        >
-          <div className="w-6 h-10 border-2 border-current rounded-full flex justify-center p-1">
-            <div className="w-1 h-2 bg-current rounded-full" />
-          </div>
-        </motion.div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-bg-primary relative">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { value: counts.fakePercentage, suffix: '%', label: 'Counterfeit Drugs' },
-              { value: counts.verified, suffix: '+', label: 'Medicines Scanned' },
-              { value: counts.chemists, suffix: '+', label: 'Verified Chemists' },
-              { value: counts.states, suffix: '', label: 'Active Regions' },
-            ].map((stat, idx) => (
-              <div key={idx} className="text-center group">
-                <p className="text-5xl font-black text-text-primary mb-2 group-hover:text-primary transition-colors">
-                  {stat.value}{stat.suffix}
-                </p>
-                <div className="h-1 w-12 bg-primary/30 mx-auto rounded-full mb-3" />
-                <p className="text-text-secondary text-xs font-bold uppercase tracking-widest">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Meet Our Team Section - NEW */}
-      <section className="py-24 bg-bg-secondary relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px]" />
-        
-        <div className="max-w-6xl mx-auto px-4 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-black text-text-primary mb-4">Meet Our Team</h2>
-            <div className="h-1.5 w-24 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full" />
-            <p className="text-text-secondary mt-6 max-w-lg mx-auto">
-              The dedicated innovators behind MediGuard, working to build a safer pharmaceutical ecosystem for India.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              { 
-                name: 'Aaftab Ansari', 
-                role: 'Technical Lead', 
-                bio: 'Visionary leader with 5+ years in health-tech and system architecture.',
-                color: 'from-blue-500 to-indigo-600',
-                icon: '🚀'
-              },
-              { 
-                name: 'Sarah Chen', 
-                role: 'Frontend Developer', 
-                bio: 'UI/UX enthusiast dedicated to creating seamless, premium user experiences.',
-                color: 'from-pink-500 to-rose-600',
-                icon: '🎨'
-              },
-              { 
-                name: 'David Miller', 
-                role: 'Backend Developer', 
-                bio: 'Security expert focused on building robust and scalable AI infrastructures.',
-                color: 'from-emerald-500 to-teal-600',
-                icon: '⚙️'
-              }
-            ].map((member, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ y: -10 }}
-                className="bg-bg-primary p-8 rounded-[2.5rem] border border-border-color shadow-xl hover:shadow-2xl transition-all group"
-              >
-                <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${member.color} flex items-center justify-center text-3xl mb-6 shadow-lg transform group-hover:rotate-6 transition-transform`}>
-                  {member.icon}
-                </div>
-                <h3 className="text-2xl font-bold text-text-primary mb-1">{member.name}</h3>
-                <p className="text-primary font-bold text-sm uppercase tracking-widest mb-4">{member.role}</p>
-                <p className="text-text-secondary text-sm leading-relaxed">{member.bio}</p>
-                
-                <div className="mt-6 flex gap-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-bg-secondary border border-border-color flex items-center justify-center text-text-secondary hover:text-primary transition-colors cursor-pointer">
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" />
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-24 bg-bg-primary">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
-            <div className="max-w-md">
-              <h2 className="text-4xl font-black text-text-primary mb-4">Users trust us</h2>
-              <p className="text-text-secondary leading-relaxed">Join thousands of people who use MediGuard every day to verify their medications.</p>
-            </div>
-            <div className="flex gap-2">
-              <div className="p-4 rounded-full bg-bg-secondary border border-border-color text-text-secondary">
-                <ArrowRight className="rotate-180" />
-              </div>
-              <div className="p-4 rounded-full bg-primary text-white shadow-lg shadow-primary/30">
-                <ArrowRight />
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="card-glass p-8 rounded-[2rem] border border-border-color space-y-6"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-primary to-secondary flex items-center justify-center font-bold text-white text-xl">
-                    {testimonial.initials}
-                  </div>
-                  <div>
-                    <p className="font-bold text-text-primary text-lg">{testimonial.name}</p>
-                    <p className="text-text-secondary text-sm font-medium">{testimonial.city}</p>
-                  </div>
-                </div>
-                <p className="text-text-secondary text-lg leading-relaxed italic">"{testimonial.text}"</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Alert Banner */}
-      {activeAlerts.length > 0 && (
-        <section className="py-6 px-4">
-          <div className="max-w-6xl mx-auto">
-            <Link
-              to={ROUTES.ALERTS}
-              className="flex items-center justify-between p-6 rounded-[2rem] bg-danger/10 border border-danger/30 hover:bg-danger/20 transition-all group"
-            >
-              <div className="flex items-center gap-5">
-                <div className="p-3 rounded-2xl bg-danger text-white animate-pulse">
-                  <AlertTriangle size={24} />
-                </div>
-                <div>
-                  <p className="font-black text-danger text-xl uppercase tracking-tight">Active Safety Alerts</p>
-                  <p className="text-danger/70 font-medium">{activeAlerts.length} counterfeit batches detected in circulation.</p>
-                </div>
-              </div>
-              <div className="w-12 h-12 rounded-full border border-danger/30 flex items-center justify-center text-danger group-hover:bg-danger group-hover:text-white transition-all">
-                <ArrowRight />
-              </div>
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* CTA Final */}
-      <section className="py-32 bg-bg-primary relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10 space-y-10">
-          <h2 className="text-5xl md:text-6xl font-black text-text-primary tracking-tighter">
-            Ready to secure <br className="md:hidden" /> your health?
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link to={ROUTES.SCANNER} className="px-10 py-5 bg-primary text-white rounded-2xl font-bold text-lg shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all">
-              <ShieldCheck size={24} />
-              Verify Now
-            </Link>
-            <Link to="/register" className="px-10 py-5 bg-bg-secondary text-text-primary border border-border-color rounded-2xl font-bold text-lg hover:bg-bg-primary transition-all">
-              Create Account
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 };

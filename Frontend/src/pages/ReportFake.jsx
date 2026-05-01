@@ -16,41 +16,46 @@ const ReportFake = () => {
   };
 
   return (
-    <div className="min-h-screen bg-bg-primary">
-      {/* Header */}
-      <div className="py-12 bg-gradient-to-br from-bg-secondary to-bg-primary border-b border-border-color">
-        <div className="max-w-6xl mx-auto px-4 text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-text-primary">
-            Report <span className="text-danger">Fake Medicine</span>
-          </h1>
-          <p className="text-text-secondary">
-            Help us protect India by reporting counterfeit medicines you've encountered
-          </p>
+    <div className="mg-root">
+      <section className="mg-hero py-12 bg-bg-0 border-b border-line overflow-hidden">
+        <div className="mg-hero__bg-grid" aria-hidden />
+        <div className="mg-container relative z-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="mg-badge mg-badge--red mb-4">
+              <span className="mg-badge__dot" />
+              Counterfeit Reporting
+            </span>
+            <h1 className="mg-hero__headline text-4xl md:text-6xl mb-4">Report Suspected Fake</h1>
+            <p className="mg-hero__sub mx-auto">Help protect public health by reporting counterfeit, substandard, or expired medicines. Your reports are shared directly with drug control authorities.</p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        {showSuccess && caseId ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <ReportSuccess
-              caseId={caseId}
-              onStartNew={() => {
-                setShowSuccess(false);
-                resetForm();
-              }}
-            />
-          </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <ReportForm onSubmit={handleSubmit} loading={submitting} />
-          </motion.div>
-        )}
+      <div className="mg-container py-12">
+        <div className="max-w-4xl mx-auto">
+          {showSuccess && caseId ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <ReportSuccess
+                caseId={caseId}
+                onStartNew={() => {
+                  setShowSuccess(false);
+                  resetForm();
+                }}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mg-card p-0 overflow-hidden"
+            >
+              <ReportForm onSubmit={handleSubmit} loading={submitting} />
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );

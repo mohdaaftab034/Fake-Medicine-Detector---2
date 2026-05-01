@@ -8,48 +8,52 @@ import { DASHBOARD_STATS } from '../utils/mockData.js';
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-bg-primary">
-      {/* Header */}
-      <div className="py-12 bg-gradient-to-br from-bg-secondary to-bg-primary border-b border-border-color">
-        <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-text-primary">
-            Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Dashboard</span>
-          </h1>
-          <p className="text-text-secondary">Real-time fake medicine detection statistics and alerts</p>
+    <div className="mg-root">
+      <section className="mg-hero py-12 bg-bg-0 border-b border-line overflow-hidden">
+        <div className="mg-hero__bg-grid" aria-hidden />
+        <div className="mg-container relative z-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <span className="mg-badge mg-badge--accent mb-4">
+              <span className="mg-badge__dot" />
+              Administrative Overview
+            </span>
+            <h1 className="mg-hero__headline text-4xl md:text-6xl mb-4">Control Dashboard</h1>
+            <p className="mg-hero__sub mx-auto">Real-time safety metrics, counterfeit detection heatmaps, and regulatory monitoring.</p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="mg-container py-12">
         {/* Stats Cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
         >
           <StatsCard
             icon={AlertTriangle}
-            title="Reports This Month"
+            title="Monthly Reports"
             value={DASHBOARD_STATS.totalReportsThisMonth}
             trend="+24%"
             color="danger"
           />
           <StatsCard
             icon={ShieldCheck}
-            title="Fake Medicines Detected"
+            title="Fake Detected"
             value={DASHBOARD_STATS.fakeMedicinesDetected}
             trend="+18%"
             color="primary"
           />
           <StatsCard
             icon={AlertTriangle}
-            title="Chemists Blacklisted"
+            title="Blacklisted"
             value={DASHBOARD_STATS.chemistsBlacklisted}
             trend="+5"
             color="warning"
           />
           <StatsCard
             icon={MapPin}
-            title="Areas on Alert"
+            title="Alert Zones"
             value={DASHBOARD_STATS.areasOnAlert}
             trend="+3"
             color="success"
@@ -61,9 +65,11 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-8"
+          className="mb-12"
         >
-          <HeatMap />
+          <div className="mg-card p-0 overflow-hidden border-line shadow-2xl">
+            <HeatMap />
+          </div>
         </motion.div>
 
         {/* Reports Section */}
@@ -81,15 +87,15 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6"
+          className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8"
         >
           {/* Top Faked Medicines */}
-          <div className="card space-y-4">
-            <h3 className="text-lg font-semibold text-primary flex items-center gap-2">
-              <BarChart3 size={20} />
-              Top 5 Most Counterfeited Medicines
+          <div className="mg-card p-8">
+            <h3 className="text-xl font-bold text-text-hi flex items-center gap-3 mb-6">
+              <BarChart3 size={24} className="text-accent" />
+              Counterfeit Trends
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-6">
               {[
                 { name: 'Insulin', count: 342 },
                 { name: 'Aspirin', count: 285 },
@@ -97,18 +103,18 @@ const Dashboard = () => {
                 { name: 'Cough Syrup', count: 198 },
                 { name: 'Vitamin D', count: 156 },
               ].map((medicine, idx) => (
-                <div key={medicine.name} className="flex items-center justify-between">
-                  <span className="text-text-secondary">{medicine.name}</span>
-                  <div className="flex items-center gap-2 flex-1 ml-4">
-                    <div className="flex-1 h-2 bg-bg-secondary rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-danger to-warning"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(medicine.count / 342) * 100}%` }}
-                        transition={{ duration: 0.5, delay: idx * 0.05 }}
-                      />
-                    </div>
-                    <span className="text-text-primary font-semibold w-12 text-right">{medicine.count}</span>
+                <div key={medicine.name} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-text-hi">{medicine.name}</span>
+                    <span className="text-xs font-black text-accent">{medicine.count}</span>
+                  </div>
+                  <div className="h-2 bg-bg-2 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-red to-amber"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(medicine.count / 342) * 100}%` }}
+                      transition={{ duration: 0.8, delay: idx * 0.1 }}
+                    />
                   </div>
                 </div>
               ))}
@@ -116,18 +122,18 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Stats */}
-          <div className="card space-y-4">
-            <h3 className="text-lg font-semibold text-primary">Quick Statistics</h3>
-            <div className="space-y-3">
+          <div className="mg-card p-8">
+            <h3 className="text-xl font-bold text-text-hi mb-6">Aggregate Safety Data</h3>
+            <div className="grid grid-cols-1 gap-4">
               {[
-                { label: 'Total Scans', value: DASHBOARD_STATS.totalScans },
-                { label: 'Genuine Medicines', value: Math.floor(DASHBOARD_STATS.totalScans * 0.75) },
-                { label: 'Fake Medicines', value: Math.floor(DASHBOARD_STATS.totalScans * 0.15) },
-                { label: 'Suspicious', value: Math.floor(DASHBOARD_STATS.totalScans * 0.1) },
+                { label: 'Total Scans', value: DASHBOARD_STATS.totalScans, bg: 'bg-accent-glow', color: 'text-accent' },
+                { label: 'Genuine Validated', value: Math.floor(DASHBOARD_STATS.totalScans * 0.75), bg: 'bg-green-dim', color: 'text-green' },
+                { label: 'Confirmed Fakes', value: Math.floor(DASHBOARD_STATS.totalScans * 0.15), bg: 'bg-red-dim', color: 'text-red' },
+                { label: 'Under Investigation', value: Math.floor(DASHBOARD_STATS.totalScans * 0.1), bg: 'bg-amber/5', color: 'text-amber' },
               ].map((stat) => (
-                <div key={stat.label} className="flex items-center justify-between p-2 rounded-lg bg-bg-primary">
-                  <span className="text-text-secondary">{stat.label}</span>
-                  <span className="text-text-primary font-semibold">{stat.value.toLocaleString()}</span>
+                <div key={stat.label} className="flex items-center justify-between p-5 rounded-2xl bg-bg-2 border border-line shadow-sm">
+                  <span className="text-sm font-bold text-text-md">{stat.label}</span>
+                  <span className={`text-lg font-black ${stat.color}`}>{stat.value.toLocaleString()}</span>
                 </div>
               ))}
             </div>
